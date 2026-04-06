@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import AddTenantDialog from '@/components/forms/AddTenantDialog';
+import AddLeaseDialog from '@/components/forms/AddLeaseDialog';
 import EditTenantDialog from '@/components/forms/EditTenantDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
 import { toast } from 'sonner';
@@ -51,7 +52,10 @@ export default function TenantsPage() {
           <h1 className="text-2xl font-heading font-bold">Tenants</h1>
           <p className="text-muted-foreground text-sm mt-1">{tenants.length} tenants across all properties</p>
         </div>
-        <AddTenantDialog onSuccess={fetchTenants} />
+        <div className="flex gap-2">
+          <AddLeaseDialog onSuccess={fetchTenants} />
+          <AddTenantDialog onSuccess={fetchTenants} />
+        </div>
       </div>
 
       {loading ? (
