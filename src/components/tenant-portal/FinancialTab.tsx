@@ -1,10 +1,12 @@
 import { formatUGX } from '@/data/mock-data';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import PesapalPayButton from '@/components/payments/PesapalPayButton';
+import { downloadReceipt } from '@/lib/generate-receipt';
 import { motion } from 'framer-motion';
-import { CreditCard, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
+import { CreditCard, TrendingUp, TrendingDown, Receipt, Download } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type PaymentMethod = Database['public']['Enums']['payment_method'];
