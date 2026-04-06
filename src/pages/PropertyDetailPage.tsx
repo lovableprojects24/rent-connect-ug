@@ -6,6 +6,7 @@ import { formatUGX } from '@/data/mock-data';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AddUnitDialog from '@/components/forms/AddUnitDialog';
+import BulkAddUnitsDialog from '@/components/forms/BulkAddUnitsDialog';
 import EditUnitDialog from '@/components/forms/EditUnitDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
 import { motion } from 'framer-motion';
@@ -130,7 +131,10 @@ export default function PropertyDetailPage() {
           <h2 className="font-heading font-semibold text-lg flex items-center gap-2">
             <Home className="w-5 h-5 text-primary" /> Units
           </h2>
-          <AddUnitDialog propertyId={property.id} onSuccess={fetchData} />
+          <div className="flex gap-2">
+            <BulkAddUnitsDialog propertyId={property.id} onSuccess={fetchData} />
+            <AddUnitDialog propertyId={property.id} onSuccess={fetchData} />
+          </div>
         </div>
 
         {units.length === 0 ? (
