@@ -83,6 +83,10 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
+  if (isTenantOnly) {
+    return <Navigate to="/portal" replace />;
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
