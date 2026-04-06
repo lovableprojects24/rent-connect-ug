@@ -11,12 +11,6 @@ import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
   const { roles } = useAuth();
-
-  // Tenants should only see their portal
-  if (roles.includes('tenant') && roles.length === 1) {
-    return <Navigate to="/portal" replace />;
-  }
-
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     propertyCount: 0,
@@ -32,9 +26,11 @@ export default function DashboardPage() {
   const [recentMaintenance, setRecentMaintenance] = useState<any[]>([]);
   const [paymentMethodData, setPaymentMethodData] = useState<any[]>([]);
 
+  const isTenantOnly = roles.includes('tenant') && roles.length === 1;
+
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!isTenantOnly) fetchDashboardData();
+  }, [isTenantOnly]);
 
   const fetchDashboardData = async () => {
     const [
