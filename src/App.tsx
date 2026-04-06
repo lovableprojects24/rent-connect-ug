@@ -19,6 +19,7 @@ import PropertyDetailPage from "@/pages/PropertyDetailPage";
 import StaffPage from "@/pages/StaffPage";
 import TenantPortalPage from "@/pages/TenantPortalPage";
 import FinanceDashboardPage from "@/pages/FinanceDashboardPage";
+import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
