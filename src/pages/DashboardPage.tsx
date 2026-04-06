@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Building2, Users, CreditCard, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
