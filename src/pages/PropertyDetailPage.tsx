@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,15 @@ import type { Tables } from '@/integrations/supabase/types';
 
 type Property = Tables<'properties'>;
 type Unit = Tables<'units'>;
+type TenantInfo = { id: string; full_name: string };
+type UnitTenantMap = Record<string, TenantInfo>;
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [property, setProperty] = useState<Property | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [unitTenants, setUnitTenants] = useState<UnitTenantMap>({});
   const [loading, setLoading] = useState(true);
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
@@ -27,12 +30,22 @@ export default function PropertyDetailPage() {
 
   const fetchData = async () => {
     if (!id) return;
-    const [propRes, unitsRes] = await Promise.all([
+    const [propRes, unitsRes, leasesRes] = await Promise.all([
       supabase.from('properties').select('*').eq('id', id).single(),
       supabase.from('units').select('*').eq('property_id', id).order('name'),
+      supabase.from('leases').select('unit_id, tenants(id, full_name)').eq('property_id', id).eq('status', 'active'),
     ]);
     if (propRes.data) setProperty(propRes.data);
     if (unitsRes.data) setUnits(unitsRes.data);
+    // Build unit -> tenant map
+    const map: UnitTenantMap = {};
+    if (leasesRes.data) {
+      for (const lease of leasesRes.data) {
+        const t = lease.tenants as unknown as TenantInfo | null;
+        if (t) map[lease.unit_id] = t;
+      }
+    }
+    setUnitTenants(map);
     setLoading(false);
   };
 
@@ -142,6 +155,11 @@ export default function PropertyDetailPage() {
                     <div>
                       <h3 className="font-medium">{unit.name}</h3>
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{unit.type} · {formatUGX(unit.rent_amount)}/mo</p>
+                      {unitTenants[unit.id] && (
+                        <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                          <User className="w-3 h-3" /> {unitTenants[unit.id].full_name}
+                        </Link>
+                      )}
                     </div>
                     <StatusBadge status={unit.status} />
                   </div>
@@ -162,11 +180,12 @@ export default function PropertyDetailPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Unit</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Type</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Rent</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
-                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Unit</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Type</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Rent</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Tenant</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
+                     <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -175,6 +194,15 @@ export default function PropertyDetailPage() {
                       <td className="px-4 py-3 text-sm font-medium">{unit.name}</td>
                       <td className="px-4 py-3 text-sm capitalize">{unit.type}</td>
                       <td className="px-4 py-3 text-sm">{formatUGX(unit.rent_amount)}</td>
+                      <td className="px-4 py-3 text-sm">
+                        {unitTenants[unit.id] ? (
+                          <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-primary hover:underline flex items-center gap-1">
+                            <User className="w-3.5 h-3.5" /> {unitTenants[unit.id].full_name}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3"><StatusBadge status={unit.status} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
