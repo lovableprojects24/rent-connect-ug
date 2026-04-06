@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import type { Tables } from '@/integrations/supabase/types';
 
 type Property = Tables<'properties'>;
 type Unit = Tables<'units'>;
+type TenantInfo = { id: string; full_name: string };
+type UnitTenantMap = Record<string, TenantInfo>;
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
