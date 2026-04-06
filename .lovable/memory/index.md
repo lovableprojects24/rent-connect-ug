@@ -3,9 +3,9 @@
 ## Core
 RentFlow: Uganda tenant management system. Mobile-first, UGX currency.
 Design: warm green (#2d8f4e) primary, gold secondary, Plus Jakarta Sans headings, Inter body.
-5 roles: admin, landlord, agent, finance, tenant. Sidebar filters by role.
-Lovable Cloud backend with RLS. property_staff table assigns agents/finance to properties.
+Pesapal for payments (sandbox/live). Secrets: PESAPAL_CONSUMER_KEY, PESAPAL_CONSUMER_SECRET.
 
 ## Memories
 - [Design tokens](mem://design/tokens) — Green/gold Uganda palette, stat card gradients, font system
-- [Role system](mem://features/roles) — 5 roles, property_staff assignments, sidebar visibility rules
+- [Roles](mem://features/roles) — 5 roles (admin, landlord, agent, finance, tenant) with property_staff
+- [Pesapal](mem://features/pesapal) — Pesapal API v3 edge function, PesapalPayButton component, settings
