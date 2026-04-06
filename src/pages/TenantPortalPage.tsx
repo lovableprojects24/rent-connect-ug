@@ -165,6 +165,21 @@ export default function TenantPortalPage() {
             <span>Paid: {formatUGX(totalPaid)}</span>
             <span>Expected: {formatUGX(totalExpected)}</span>
           </div>
+          {balance > 0 && (
+            <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Outstanding: {formatUGX(balance)}</p>
+                <p className="text-xs text-muted-foreground">Pay your rent securely via Pesapal (MoMo, Airtel, Visa, Bank)</p>
+              </div>
+              <div className="flex gap-2">
+                <PesapalPayButton
+                  amount={activeLease.rent_amount}
+                  paymentId={`rent-${tenant.id}-${new Date().toISOString().slice(0, 7)}`}
+                  description={`Rent payment for ${(activeLease as any).properties?.name} - ${(activeLease as any).units?.name}`}
+                />
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
 
