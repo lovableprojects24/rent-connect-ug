@@ -194,6 +194,15 @@ export default function PropertyDetailPage() {
                       <td className="px-4 py-3 text-sm font-medium">{unit.name}</td>
                       <td className="px-4 py-3 text-sm capitalize">{unit.type}</td>
                       <td className="px-4 py-3 text-sm">{formatUGX(unit.rent_amount)}</td>
+                      <td className="px-4 py-3 text-sm">
+                        {unitTenants[unit.id] ? (
+                          <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-primary hover:underline flex items-center gap-1">
+                            <User className="w-3.5 h-3.5" /> {unitTenants[unit.id].full_name}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3"><StatusBadge status={unit.status} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
