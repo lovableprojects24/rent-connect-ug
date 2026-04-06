@@ -14,6 +14,7 @@ import PaymentsPage from "@/pages/PaymentsPage";
 import MaintenancePage from "@/pages/MaintenancePage";
 import ReportsPage from "@/pages/ReportsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
+import TenantDetailPage from "@/pages/TenantDetailPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/" element={<DashboardPage />} />
               <Route path="/properties" element={<PropertiesPage />} />
               <Route path="/tenants" element={<TenantsPage />} />
+              <Route path="/tenants/:id" element={<TenantDetailPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
               <Route path="/maintenance" element={<MaintenancePage />} />
               <Route path="/reports" element={<ReportsPage />} />

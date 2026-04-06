@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Phone, Mail, Users, Pencil, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Phone, Mail, Users, Pencil, Trash2, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import type { Tables } from '@/integrations/supabase/types';
 type Tenant = Tables<'tenants'>;
 
 export default function TenantsPage() {
+  const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [editTenant, setEditTenant] = useState<Tenant | null>(null);
@@ -76,7 +78,7 @@ export default function TenantsPage() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-medium">{tenant.full_name}</h3>
+                    <h3 className="font-medium cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/tenants/${tenant.id}`)}>{tenant.full_name}</h3>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{tenant.phone}</span>
                       {tenant.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{tenant.email}</span>}
@@ -111,7 +113,7 @@ export default function TenantsPage() {
               <tbody>
                 {tenants.map((tenant) => (
                   <tr key={tenant.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium">{tenant.full_name}</td>
+                    <td className="px-4 py-3 text-sm font-medium cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/tenants/${tenant.id}`)}>{tenant.full_name}</td>
                     <td className="px-4 py-3 text-sm">{tenant.phone}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{tenant.email || '—'}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{tenant.emergency_contact || '—'}</td>
