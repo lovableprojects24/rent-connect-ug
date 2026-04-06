@@ -21,14 +21,6 @@ export default function SettingsPage() {
   const { user, profile, roles, hasRole } = useAuth();
   const isAdmin = hasRole('admin');
 
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">
-        <p>You do not have permission to access settings.</p>
-      </div>
-    );
-  }
-
   // Profile state
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
