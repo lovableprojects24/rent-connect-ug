@@ -13,6 +13,8 @@ import {
   Home,
   Shield,
   PieChart,
+  Wallet,
+  FileText,
   LucideIcon,
 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
@@ -23,11 +25,10 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   path: string;
-  /** Roles that can see this item. undefined = visible to all authenticated users */
   roles?: AppRole[];
 }
 
-const navItems: NavItem[] = [
+const adminNavItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['admin', 'landlord', 'agent', 'finance'] },
   { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin', 'landlord', 'agent'] },
   { label: 'Tenants', icon: Users, path: '/tenants', roles: ['admin', 'landlord', 'agent'] },
@@ -36,10 +37,14 @@ const navItems: NavItem[] = [
   { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Finance', icon: PieChart, path: '/finance', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Staff', icon: Shield, path: '/staff', roles: ['admin', 'landlord'] },
-  { label: 'My Portal', icon: Home, path: '/portal', roles: ['tenant'] },
   { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['admin', 'landlord', 'agent', 'finance'] },
 ];
 
+const tenantNavItems: NavItem[] = [
+  { label: 'Financial', icon: Wallet, path: '/portal?tab=financial' },
+  { label: 'Maintenance', icon: Wrench, path: '/portal?tab=maintenance' },
+  { label: 'Lease & Docs', icon: FileText, path: '/portal?tab=lease' },
+];
 interface AppSidebarProps {
   isOpen: boolean;
   onClose: () => void;
