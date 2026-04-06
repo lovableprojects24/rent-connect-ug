@@ -1,10 +1,12 @@
 import { formatUGX } from '@/data/mock-data';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import PesapalPayButton from '@/components/payments/PesapalPayButton';
+import { downloadReceipt } from '@/lib/generate-receipt';
 import { motion } from 'framer-motion';
-import { CreditCard, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
+import { CreditCard, TrendingUp, TrendingDown, Receipt, Download } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type PaymentMethod = Database['public']['Enums']['payment_method'];
@@ -114,9 +116,27 @@ export default function FinancialTab({ tenant, activeLease, payments }: Financia
                     <p className="text-xs text-muted-foreground">{methodLabels[p.method as PaymentMethod]} · {p.payment_date}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <StatusBadge status={p.status} />
-                  {p.reference && <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{p.reference}</p>}
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <StatusBadge status={p.status} />
+                    {p.reference && <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{p.reference}</p>}
+                  </div>
+                  {p.status === 'completed' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 flex-shrink-0"
+                      title="Download receipt"
+                      onClick={() => downloadReceipt({
+                        payment: p,
+                        tenantName: tenant.full_name,
+                        propertyName: activeLease?.properties?.name,
+                        unitName: activeLease?.units?.name,
+                      })}
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
