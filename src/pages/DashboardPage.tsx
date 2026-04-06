@@ -10,6 +10,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
+  const { roles } = useAuth();
+
+  // Tenants should only see their portal
+  if (roles.includes('tenant') && roles.length === 1) {
+    return <Navigate to="/portal" replace />;
+  }
+
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     propertyCount: 0,
