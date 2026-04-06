@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import StatusBadge from '@/components/shared/StatusBadge';
 import StatCard from '@/components/shared/StatCard';
 import ReportMaintenanceDialog from '@/components/forms/ReportMaintenanceDialog';
+import PesapalPayButton from '@/components/payments/PesapalPayButton';
 import { motion } from 'framer-motion';
 import {
   CreditCard,
