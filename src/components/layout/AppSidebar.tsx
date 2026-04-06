@@ -12,6 +12,7 @@ import {
   LogOut,
   Home,
   Shield,
+  PieChart,
   LucideIcon,
 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'landlord', 'agent', 'finance'] },
   { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['admin', 'landlord', 'agent'] },
   { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['admin', 'landlord', 'finance'] },
+  { label: 'Finance', icon: PieChart, path: '/finance', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Staff', icon: Shield, path: '/staff', roles: ['admin', 'landlord'] },
   { label: 'My Portal', icon: Home, path: '/portal', roles: ['tenant'] },
   { label: 'Notifications', icon: Bell, path: '/notifications' },
