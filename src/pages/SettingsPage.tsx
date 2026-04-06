@@ -304,39 +304,48 @@ export default function SettingsPage() {
               <div className={card}>
                 <h3 className="font-heading font-semibold">Payment Gateways</h3>
                 <p className="text-sm text-muted-foreground">
-                  Mobile money integration with MTN MoMo and Airtel Money. Bank reconciliation with Stanbic, Centenary, and ABSA.
+                  Pesapal integration for MTN MoMo, Airtel Money, Visa, and bank payments across East Africa.
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between border border-border rounded-lg p-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-lg">🟡</span>
+                      <span className="text-lg">🌐</span>
                       <div>
-                        <p className="text-sm font-medium">MTN MoMo</p>
-                        <p className="text-xs text-muted-foreground">Mobile money collection</p>
+                        <p className="text-sm font-medium">Pesapal</p>
+                        <p className="text-xs text-muted-foreground">Mobile money, cards & bank payments</p>
                       </div>
                     </div>
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">Coming soon</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">Active</span>
                   </div>
-                  <div className="flex items-center justify-between border border-border rounded-lg p-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">🔴</span>
-                      <div>
-                        <p className="text-sm font-medium">Airtel Money</p>
-                        <p className="text-xs text-muted-foreground">Mobile money collection</p>
-                      </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Pesapal Environment</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        value={String(settings.pesapal_env || 'sandbox')}
+                        onChange={e => updateSetting('pesapal_env', e.target.value)}
+                      >
+                        <option value="sandbox">Sandbox (Testing)</option>
+                        <option value="live">Live (Production)</option>
+                      </select>
+                      <p className="text-xs text-muted-foreground">Use Sandbox for testing, switch to Live when ready</p>
                     </div>
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">Coming soon</span>
-                  </div>
-                  <div className="flex items-center justify-between border border-border rounded-lg p-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">🏦</span>
-                      <div>
-                        <p className="text-sm font-medium">Bank Reconciliation</p>
-                        <p className="text-xs text-muted-foreground">Stanbic, Centenary, ABSA</p>
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Default Currency</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        value={String(settings.pesapal_currency || 'UGX')}
+                        onChange={e => updateSetting('pesapal_currency', e.target.value)}
+                      >
+                        <option value="UGX">UGX — Uganda Shilling</option>
+                        <option value="KES">KES — Kenya Shilling</option>
+                        <option value="USD">USD — US Dollar</option>
+                      </select>
                     </div>
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">Coming soon</span>
                   </div>
+                  <p className="text-xs text-muted-foreground border-t border-border pt-3">
+                    API keys are securely stored in backend settings. To update your Pesapal Consumer Key or Consumer Secret, contact your system administrator.
+                  </p>
                 </div>
               </div>
 
