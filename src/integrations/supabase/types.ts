@@ -284,6 +284,38 @@ export type Database = {
         }
         Relationships: []
       }
+      property_staff: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_staff_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
@@ -391,9 +423,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_property_staff: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "landlord" | "tenant" | "agent" | "admin"
+      app_role: "landlord" | "tenant" | "agent" | "admin" | "finance"
       lease_status: "active" | "inactive" | "pending" | "terminated"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "open" | "in_progress" | "resolved" | "closed"
@@ -529,7 +565,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["landlord", "tenant", "agent", "admin"],
+      app_role: ["landlord", "tenant", "agent", "admin", "finance"],
       lease_status: ["active", "inactive", "pending", "terminated"],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["open", "in_progress", "resolved", "closed"],
