@@ -16,6 +16,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import TenantDetailPage from "@/pages/TenantDetailPage";
 import PropertyDetailPage from "@/pages/PropertyDetailPage";
+import StaffPage from "@/pages/StaffPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/maintenance" element={<MaintenancePage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/staff" element={<StaffPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
