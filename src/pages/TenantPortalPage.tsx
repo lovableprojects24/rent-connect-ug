@@ -127,7 +127,7 @@ export default function TenantPortalPage() {
           title="Monthly Rent"
           value={activeLease ? formatUGX(activeLease.rent_amount) : '—'}
           icon={CreditCard}
-          variant="gradient"
+          variant="primary"
         />
         <StatCard
           title="Total Paid"
