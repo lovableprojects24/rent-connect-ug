@@ -8,7 +8,7 @@ type AppRole = Database['public']['Enums']['app_role'];
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  profile: { full_name: string | null; phone: string | null; avatar_url: string | null } | null;
+  profile: { full_name: string | null; phone: string | null; avatar_url: string | null; must_change_password: boolean } | null;
   roles: AppRole[];
   loading: boolean;
   signOut: () => Promise<void>;
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function fetchProfileAndRoles(userId: string) {
     try {
       const [profileRes, rolesRes] = await Promise.all([
-        supabase.from('profiles').select('full_name, phone, avatar_url').eq('user_id', userId).single(),
+        supabase.from('profiles').select('full_name, phone, avatar_url, must_change_password').eq('user_id', userId).single(),
         supabase.from('user_roles').select('role').eq('user_id', userId),
       ]);
 
