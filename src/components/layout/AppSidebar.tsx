@@ -54,16 +54,19 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
+  const isTenantOnly = roles.includes('tenant') && roles.length === 1;
 
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
   };
 
-  const visibleItems = navItems.filter(item => {
-    if (!item.roles) return true;
-    return item.roles.some(r => roles.includes(r));
-  });
+  const visibleItems = isTenantOnly
+    ? tenantNavItems
+    : adminNavItems.filter(item => {
+        if (!item.roles) return true;
+        return item.roles.some(r => roles.includes(r));
+      });
 
   return (
     <>
