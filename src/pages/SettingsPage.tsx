@@ -19,7 +19,7 @@ interface SettingsMap {
 
 export default function SettingsPage() {
   const { user, profile, roles, hasRole } = useAuth();
-  const isAdmin = hasRole('admin') || hasRole('landlord');
+  const isAdmin = hasRole('admin');
 
   // Profile state
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -124,6 +124,14 @@ export default function SettingsPage() {
   };
 
   const card = 'bg-card rounded-xl border border-border p-5 space-y-4';
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">
+        <p>You do not have permission to access settings.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
