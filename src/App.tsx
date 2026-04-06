@@ -20,6 +20,7 @@ import StaffPage from "@/pages/StaffPage";
 import TenantPortalPage from "@/pages/TenantPortalPage";
 import FinanceDashboardPage from "@/pages/FinanceDashboardPage";
 import SettingsPage from "@/pages/SettingsPage";
+import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
             <Route
               element={
                 <ProtectedRoute>
