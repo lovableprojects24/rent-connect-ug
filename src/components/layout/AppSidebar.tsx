@@ -30,6 +30,13 @@ interface AppSidebarProps {
 
 export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <>
