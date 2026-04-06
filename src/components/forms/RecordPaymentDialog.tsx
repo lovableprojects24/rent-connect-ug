@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,8 +31,8 @@ export default function RecordPaymentDialog({ onSuccess, defaultMethod }: Record
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const [tenants, setTenants] = useState<{ id: string; full_name: string }[]>([]);
-  const [properties, setProperties] = useState<{ id: string; name: string }[]>([]);
+  const [tenantsList, setTenantsList] = useState<{ id: string; full_name: string }[]>([]);
+  const [propertiesList, setPropertiesList] = useState<{ id: string; name: string }[]>([]);
 
   const [tenantId, setTenantId] = useState('');
   const [propertyId, setPropertyId] = useState('');
@@ -48,10 +47,10 @@ export default function RecordPaymentDialog({ onSuccess, defaultMethod }: Record
   useEffect(() => {
     if (open) {
       supabase.from('tenants').select('id, full_name').then(({ data }) => {
-        if (data) setTenants(data);
+        if (data) setTenantsList(data);
       });
       supabase.from('properties').select('id, name').then(({ data }) => {
-        if (data) setProperties(data);
+        if (data) setPropertiesList(data);
       });
       if (defaultMethod) setMethod(defaultMethod);
     }
@@ -113,6 +112,8 @@ export default function RecordPaymentDialog({ onSuccess, defaultMethod }: Record
     }
   };
 
+  const selectClass = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -129,21 +130,17 @@ export default function RecordPaymentDialog({ onSuccess, defaultMethod }: Record
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Tenant</Label>
-              <Select value={tenantId} onValueChange={setTenantId}>
-                <SelectTrigger><SelectValue placeholder="Select tenant" /></SelectTrigger>
-                <SelectContent>
-                  {tenants.map(t => <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <select className={selectClass} value={tenantId} onChange={e => setTenantId(e.target.value)}>
+                <option value="">Select tenant</option>
+                {tenantsList.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+              </select>
             </div>
             <div className="space-y-2">
               <Label>Property</Label>
-              <Select value={propertyId} onValueChange={setPropertyId}>
-                <SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
-                <SelectContent>
-                  {properties.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <select className={selectClass} value={propertyId} onChange={e => setPropertyId(e.target.value)}>
+                <option value="">Select property</option>
+                {propertiesList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
             </div>
           </div>
 
@@ -154,37 +151,28 @@ export default function RecordPaymentDialog({ onSuccess, defaultMethod }: Record
             </div>
             <div className="space-y-2">
               <Label>Payment Method</Label>
-              <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <select className={selectClass} value={method} onChange={e => setMethod(e.target.value as PaymentMethod)}>
+                {METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rent">Rent</SelectItem>
-                  <SelectItem value="deposit">Deposit</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                </SelectContent>
-              </Select>
+              <select className={selectClass} value={paymentType} onChange={e => setPaymentType(e.target.value as PaymentType)}>
+                <option value="rent">Rent</option>
+                <option value="deposit">Deposit</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
             </div>
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as PaymentStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
+              <select className={selectClass} value={status} onChange={e => setStatus(e.target.value as PaymentStatus)}>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="pay-date">Date</Label>
