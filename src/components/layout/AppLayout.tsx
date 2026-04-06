@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu, Bell, Search } from 'lucide-react';
 import AppSidebar from './AppSidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
