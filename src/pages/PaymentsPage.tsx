@@ -57,9 +57,20 @@ export default function PaymentsPage() {
 
       {/* Mobile Money Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
-        {(['mtn_momo', 'airtel_money'] as PaymentMethod[]).map((m, i) => (
-          <RecordPaymentDialogQuickAction key={m} method={m} delay={i * 0.05} onSuccess={fetchPayments} />
-        ))}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 text-left">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ background: 'hsl(48 96% 90%)' }}>🟡</div>
+          <div>
+            <p className="text-sm font-semibold">MTN MoMo</p>
+            <p className="text-xs text-muted-foreground">Record payment</p>
+          </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 text-left">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ background: 'hsl(0 72% 92%)' }}>🔴</div>
+          <div>
+            <p className="text-sm font-semibold">Airtel Money</p>
+            <p className="text-xs text-muted-foreground">Record payment</p>
+          </div>
+        </motion.div>
       </div>
 
       {loading ? (
