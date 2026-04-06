@@ -20,7 +20,6 @@ import StaffPage from "@/pages/StaffPage";
 import TenantPortalPage from "@/pages/TenantPortalPage";
 import FinanceDashboardPage from "@/pages/FinanceDashboardPage";
 import NotFound from "./pages/NotFound.tsx";
-import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
