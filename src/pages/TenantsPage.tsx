@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Phone, Mail, Users } from 'lucide-react';
+import { Phone, Mail, Users, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 import AddTenantDialog from '@/components/forms/AddTenantDialog';
+import EditTenantDialog from '@/components/forms/EditTenantDialog';
+import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
+import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
@@ -10,6 +14,9 @@ type Tenant = Tables<'tenants'>;
 export default function TenantsPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editTenant, setEditTenant] = useState<Tenant | null>(null);
+  const [deleteTenant, setDeleteTenant] = useState<Tenant | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchTenants = async () => {
     const { data } = await supabase.from('tenants').select('*').order('created_at', { ascending: false });
@@ -18,6 +25,22 @@ export default function TenantsPage() {
   };
 
   useEffect(() => { fetchTenants(); }, []);
+
+  const handleDelete = async () => {
+    if (!deleteTenant) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('tenants').delete().eq('id', deleteTenant.id);
+      if (error) throw error;
+      toast.success('Tenant deleted');
+      setDeleteTenant(null);
+      fetchTenants();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete tenant');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -51,12 +74,22 @@ export default function TenantsPage() {
                 transition={{ delay: i * 0.05 }}
                 className="bg-card rounded-xl border border-border p-4 space-y-3"
               >
-                <div>
-                  <h3 className="font-medium">{tenant.full_name}</h3>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{tenant.phone}</span>
-                  {tenant.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{tenant.email}</span>}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium">{tenant.full_name}</h3>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{tenant.phone}</span>
+                      {tenant.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{tenant.email}</span>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditTenant(tenant)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteTenant(tenant)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -72,16 +105,27 @@ export default function TenantsPage() {
                   <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Email</th>
                   <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Emergency Contact</th>
                   <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Added</th>
+                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {tenants.map((tenant) => (
-                  <tr key={tenant.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
+                  <tr key={tenant.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 text-sm font-medium">{tenant.full_name}</td>
                     <td className="px-4 py-3 text-sm">{tenant.phone}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{tenant.email || '—'}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{tenant.emergency_contact || '—'}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{new Date(tenant.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditTenant(tenant)}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteTenant(tenant)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -89,6 +133,9 @@ export default function TenantsPage() {
           </motion.div>
         </>
       )}
+
+      <EditTenantDialog tenant={editTenant} open={!!editTenant} onOpenChange={(o) => !o && setEditTenant(null)} onSuccess={fetchTenants} />
+      <DeleteConfirmDialog open={!!deleteTenant} onOpenChange={(o) => !o && setDeleteTenant(null)} onConfirm={handleDelete} loading={deleting} title="Delete Tenant" description={`Are you sure you want to delete "${deleteTenant?.full_name}"? This cannot be undone.`} />
     </div>
   );
 }

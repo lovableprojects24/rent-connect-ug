@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Download, CreditCard } from 'lucide-react';
+import { Download, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import RecordPaymentDialog from '@/components/forms/RecordPaymentDialog';
+import EditPaymentDialog from '@/components/forms/EditPaymentDialog';
+import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
+import { toast } from 'sonner';
 import type { Tables, Database } from '@/integrations/supabase/types';
 
 type Payment = Tables<'payments'>;
@@ -28,6 +31,9 @@ const methodIcons: Record<PaymentMethod, string> = {
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editPayment, setEditPayment] = useState<Payment | null>(null);
+  const [deletePayment, setDeletePayment] = useState<Payment | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPayments = async () => {
     const { data } = await supabase.from('payments').select('*').order('payment_date', { ascending: false });
@@ -36,6 +42,22 @@ export default function PaymentsPage() {
   };
 
   useEffect(() => { fetchPayments(); }, []);
+
+  const handleDelete = async () => {
+    if (!deletePayment) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('payments').delete().eq('id', deletePayment.id);
+      if (error) throw error;
+      toast.success('Payment deleted');
+      setDeletePayment(null);
+      fetchPayments();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete payment');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const totalCollected = payments.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0);
 
@@ -103,7 +125,15 @@ export default function PaymentsPage() {
                       <p className="text-xs text-muted-foreground">{payment.type}</p>
                     </div>
                   </div>
-                  <StatusBadge status={payment.status} />
+                  <div className="flex items-center gap-1">
+                    <StatusBadge status={payment.status} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditPayment(payment)}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePayment(payment)}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between mt-3 text-sm">
                   <span className="text-muted-foreground">{payment.payment_date}</span>
@@ -125,6 +155,7 @@ export default function PaymentsPage() {
                   <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Date</th>
                   <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Reference</th>
                   <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
+                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -138,6 +169,16 @@ export default function PaymentsPage() {
                     <td className="px-4 py-3 text-sm text-muted-foreground">{payment.payment_date}</td>
                     <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{payment.reference || '—'}</td>
                     <td className="px-4 py-3"><StatusBadge status={payment.status} /></td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditPayment(payment)}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeletePayment(payment)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -145,9 +186,9 @@ export default function PaymentsPage() {
           </motion.div>
         </>
       )}
+
+      <EditPaymentDialog payment={editPayment} open={!!editPayment} onOpenChange={(o) => !o && setEditPayment(null)} onSuccess={fetchPayments} />
+      <DeleteConfirmDialog open={!!deletePayment} onOpenChange={(o) => !o && setDeletePayment(null)} onConfirm={handleDelete} loading={deleting} title="Delete Payment" description={`Are you sure you want to delete this ${formatUGX(deletePayment?.amount || 0)} payment? This cannot be undone.`} />
     </div>
   );
 }
-
-
-

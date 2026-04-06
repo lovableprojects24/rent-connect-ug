@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Building2, MapPin } from 'lucide-react';
+import { Building2, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 import AddPropertyDialog from '@/components/forms/AddPropertyDialog';
+import EditPropertyDialog from '@/components/forms/EditPropertyDialog';
+import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
+import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Property = Tables<'properties'>;
@@ -11,6 +15,9 @@ type Property = Tables<'properties'>;
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editProperty, setEditProperty] = useState<Property | null>(null);
+  const [deleteProperty, setDeleteProperty] = useState<Property | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchProperties = async () => {
     const { data } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
@@ -19,6 +26,22 @@ export default function PropertiesPage() {
   };
 
   useEffect(() => { fetchProperties(); }, []);
+
+  const handleDelete = async () => {
+    if (!deleteProperty) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('properties').delete().eq('id', deleteProperty.id);
+      if (error) throw error;
+      toast.success('Property deleted');
+      setDeleteProperty(null);
+      fetchProperties();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete property');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -48,7 +71,7 @@ export default function PropertiesPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
-              className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-md transition-shadow"
             >
               <div className="h-32 stat-card-gradient flex items-center justify-center">
                 <Building2 className="w-10 h-10 text-primary-foreground/40" />
@@ -64,11 +87,22 @@ export default function PropertiesPage() {
                   <span className="text-muted-foreground">{property.type}</span>
                   <span className="font-medium">{property.total_units} units</span>
                 </div>
+                <div className="flex gap-2 pt-1">
+                  <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => setEditProperty(property)}>
+                    <Pencil className="w-3.5 h-3.5" /> Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={() => setDeleteProperty(property)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
       )}
+
+      <EditPropertyDialog property={editProperty} open={!!editProperty} onOpenChange={(o) => !o && setEditProperty(null)} onSuccess={fetchProperties} />
+      <DeleteConfirmDialog open={!!deleteProperty} onOpenChange={(o) => !o && setDeleteProperty(null)} onConfirm={handleDelete} loading={deleting} title="Delete Property" description={`Are you sure you want to delete "${deleteProperty?.name}"? This cannot be undone.`} />
     </div>
   );
 }
