@@ -44,9 +44,9 @@ export default function AppLayout() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
-                  JK
+                  {initials}
                 </div>
-                <span className="hidden sm:block text-sm font-medium">John Kato</span>
+                <span className="hidden sm:block text-sm font-medium">{displayName}</span>
               </div>
             </div>
           </div>
