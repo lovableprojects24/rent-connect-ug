@@ -2,9 +2,15 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu, Bell, Search } from 'lucide-react';
 import AppSidebar from './AppSidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AppLayout() {
+  const { profile } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const initials = profile?.full_name
+    ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '??';
+  const displayName = profile?.full_name || 'User';
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,9 +44,9 @@ export default function AppLayout() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
-                  JK
+                  {initials}
                 </div>
-                <span className="hidden sm:block text-sm font-medium">John Kato</span>
+                <span className="hidden sm:block text-sm font-medium">{displayName}</span>
               </div>
             </div>
           </div>

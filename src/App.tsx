@@ -3,7 +3,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import AppLayout from "@/components/layout/AppLayout";
+import AuthPage from "@/pages/AuthPage";
 import DashboardPage from "@/pages/DashboardPage";
 import PropertiesPage from "@/pages/PropertiesPage";
 import TenantsPage from "@/pages/TenantsPage";
@@ -21,18 +24,27 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/properties" element={<PropertiesPage />} />
-            <Route path="/tenants" element={<TenantsPage />} />
-            <Route path="/payments" element={<PaymentsPage />} />
-            <Route path="/maintenance" element={<MaintenancePage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<AuthPage />} />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/properties" element={<PropertiesPage />} />
+              <Route path="/tenants" element={<TenantsPage />} />
+              <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/maintenance" element={<MaintenancePage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
