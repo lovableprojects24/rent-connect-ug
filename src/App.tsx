@@ -3,7 +3,14 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
+import AppLayout from "@/components/layout/AppLayout";
+import DashboardPage from "@/pages/DashboardPage";
+import PropertiesPage from "@/pages/PropertiesPage";
+import TenantsPage from "@/pages/TenantsPage";
+import PaymentsPage from "@/pages/PaymentsPage";
+import MaintenancePage from "@/pages/MaintenancePage";
+import ReportsPage from "@/pages/ReportsPage";
+import NotificationsPage from "@/pages/NotificationsPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -15,8 +22,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/properties" element={<PropertiesPage />} />
+            <Route path="/tenants" element={<TenantsPage />} />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
