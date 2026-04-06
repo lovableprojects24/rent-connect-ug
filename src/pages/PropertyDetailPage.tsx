@@ -22,6 +22,7 @@ export default function PropertyDetailPage() {
   const navigate = useNavigate();
   const [property, setProperty] = useState<Property | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [unitTenants, setUnitTenants] = useState<UnitTenantMap>({});
   const [loading, setLoading] = useState(true);
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
@@ -29,12 +30,22 @@ export default function PropertyDetailPage() {
 
   const fetchData = async () => {
     if (!id) return;
-    const [propRes, unitsRes] = await Promise.all([
+    const [propRes, unitsRes, leasesRes] = await Promise.all([
       supabase.from('properties').select('*').eq('id', id).single(),
       supabase.from('units').select('*').eq('property_id', id).order('name'),
+      supabase.from('leases').select('unit_id, tenants(id, full_name)').eq('property_id', id).eq('status', 'active'),
     ]);
     if (propRes.data) setProperty(propRes.data);
     if (unitsRes.data) setUnits(unitsRes.data);
+    // Build unit -> tenant map
+    const map: UnitTenantMap = {};
+    if (leasesRes.data) {
+      for (const lease of leasesRes.data) {
+        const t = lease.tenants as unknown as TenantInfo | null;
+        if (t) map[lease.unit_id] = t;
+      }
+    }
+    setUnitTenants(map);
     setLoading(false);
   };
 
