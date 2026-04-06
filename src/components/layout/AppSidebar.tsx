@@ -11,15 +11,27 @@ import {
   Settings,
   LogOut,
   Home,
+  LucideIcon,
 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
 
-const navItems = [
+type AppRole = Database['public']['Enums']['app_role'];
+
+interface NavItem {
+  label: string;
+  icon: LucideIcon;
+  path: string;
+  /** Roles that can see this item. undefined = visible to all authenticated users */
+  roles?: AppRole[];
+}
+
+const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { label: 'Properties', icon: Building2, path: '/properties' },
-  { label: 'Tenants', icon: Users, path: '/tenants' },
-  { label: 'Payments', icon: CreditCard, path: '/payments' },
-  { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
-  { label: 'Reports', icon: BarChart3, path: '/reports' },
+  { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin', 'landlord', 'agent'] },
+  { label: 'Tenants', icon: Users, path: '/tenants', roles: ['admin', 'landlord', 'agent'] },
+  { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'landlord', 'agent', 'finance'] },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['admin', 'landlord', 'agent'] },
+  { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Notifications', icon: Bell, path: '/notifications' },
 ];
 
@@ -31,12 +43,17 @@ interface AppSidebarProps {
 export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, roles } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
   };
+
+  const visibleItems = navItems.filter(item => {
+    if (!item.roles) return true;
+    return item.roles.some(r => roles.includes(r));
+  });
 
   return (
     <>
@@ -66,7 +83,7 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -85,6 +102,15 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
             );
           })}
         </nav>
+
+        {/* Role badge */}
+        {roles.length > 0 && (
+          <div className="px-6 py-2">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
+              {roles[0]}
+            </span>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
