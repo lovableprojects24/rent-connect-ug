@@ -1,9 +1,25 @@
-import { Building2, MapPin, Plus } from 'lucide-react';
-import { properties, formatUGX } from '@/data/mock-data';
+import { useEffect, useState } from 'react';
+import { Building2, MapPin } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { formatUGX } from '@/data/mock-data';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import AddPropertyDialog from '@/components/forms/AddPropertyDialog';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Property = Tables<'properties'>;
 
 export default function PropertiesPage() {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProperties = async () => {
+    const { data } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
+    if (data) setProperties(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchProperties(); }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -11,16 +27,22 @@ export default function PropertiesPage() {
           <h1 className="text-2xl font-heading font-bold">Properties</h1>
           <p className="text-muted-foreground text-sm mt-1">{properties.length} properties in your portfolio</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Add Property</span>
-        </Button>
+        <AddPropertyDialog onSuccess={fetchProperties} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {properties.map((property, i) => {
-          const occupancyRate = Math.round((property.occupiedUnits / property.totalUnits) * 100);
-          return (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      ) : properties.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground">
+          <Building2 className="w-12 h-12 mx-auto mb-3 opacity-40" />
+          <p className="font-medium">No properties yet</p>
+          <p className="text-sm mt-1">Add your first property to get started</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {properties.map((property, i) => (
             <motion.div
               key={property.id}
               initial={{ opacity: 0, y: 12 }}
@@ -40,28 +62,13 @@ export default function PropertiesPage() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{property.type}</span>
-                  <span className="font-medium">{formatUGX(property.monthlyRevenue)}/mo</span>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Occupancy</span>
-                    <span className="font-medium">{occupancyRate}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${occupancyRate}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {property.occupiedUnits}/{property.totalUnits} units occupied
-                  </p>
+                  <span className="font-medium">{property.total_units} units</span>
                 </div>
               </div>
             </motion.div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
