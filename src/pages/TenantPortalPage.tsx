@@ -76,7 +76,7 @@ export default function TenantPortalPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="financial" className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setSearchParams({ tab: v })} className="w-full">
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="financial" className="gap-1.5 text-xs sm:text-sm">
             <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Financial</span>
