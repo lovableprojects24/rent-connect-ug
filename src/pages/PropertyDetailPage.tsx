@@ -155,6 +155,11 @@ export default function PropertyDetailPage() {
                     <div>
                       <h3 className="font-medium">{unit.name}</h3>
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{unit.type} · {formatUGX(unit.rent_amount)}/mo</p>
+                      {unitTenants[unit.id] && (
+                        <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                          <User className="w-3 h-3" /> {unitTenants[unit.id].full_name}
+                        </Link>
+                      )}
                     </div>
                     <StatusBadge status={unit.status} />
                   </div>
@@ -175,11 +180,12 @@ export default function PropertyDetailPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Unit</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Type</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Rent</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
-                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Unit</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Type</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Rent</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Tenant</th>
+                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
+                     <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
