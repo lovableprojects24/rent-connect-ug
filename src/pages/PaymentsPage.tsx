@@ -149,16 +149,5 @@ export default function PaymentsPage() {
   );
 }
 
-function RecordPaymentDialogQuickAction({ method, delay, onSuccess }: { method: PaymentMethod; delay: number; onSuccess: () => void }) {
-  const label = method === 'mtn_momo' ? 'MTN MoMo' : 'Airtel Money';
-  const icon = method === 'mtn_momo' ? '🟡' : '🔴';
-  const bg = method === 'mtn_momo' ? 'hsl(48 96% 90%)' : 'hsl(0 72% 92%)';
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
-      <RecordPaymentDialog onSuccess={onSuccess} defaultMethod={method}>
-        {/* We can't pass children to the existing dialog, so we just render the quick action as a visual block */}
-      </RecordPaymentDialog>
-    </motion.div>
-  );
-}
+
