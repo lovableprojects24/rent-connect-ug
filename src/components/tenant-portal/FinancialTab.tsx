@@ -116,9 +116,27 @@ export default function FinancialTab({ tenant, activeLease, payments }: Financia
                     <p className="text-xs text-muted-foreground">{methodLabels[p.method as PaymentMethod]} · {p.payment_date}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <StatusBadge status={p.status} />
-                  {p.reference && <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{p.reference}</p>}
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <StatusBadge status={p.status} />
+                    {p.reference && <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{p.reference}</p>}
+                  </div>
+                  {p.status === 'completed' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 flex-shrink-0"
+                      title="Download receipt"
+                      onClick={() => downloadReceipt({
+                        payment: p,
+                        tenantName: tenant.full_name,
+                        propertyName: activeLease?.properties?.name,
+                        unitName: activeLease?.units?.name,
+                      })}
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
