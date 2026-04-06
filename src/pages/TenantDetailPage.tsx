@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, AlertCircle, Calendar, Building2, CreditCard, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, AlertCircle, Calendar, Building2, CreditCard, TrendingUp, TrendingDown, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import StatusBadge from '@/components/shared/StatusBadge';
+import AddLeaseDialog from '@/components/forms/AddLeaseDialog';
 import { motion } from 'framer-motion';
 import type { Tables, Database } from '@/integrations/supabase/types';
 
@@ -148,9 +149,20 @@ export default function TenantDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leases */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl border border-border p-5">
-          <h3 className="font-heading font-semibold mb-4 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-primary" /> Lease History
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-heading font-semibold flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-primary" /> Lease History
+            </h3>
+            <AddLeaseDialog
+              preselectedTenantId={tenant.id}
+              onSuccess={fetchData}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Plus className="w-3.5 h-3.5" /> New Lease
+                </Button>
+              }
+            />
+          </div>
           {leases.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">No leases found</p>
           ) : (
