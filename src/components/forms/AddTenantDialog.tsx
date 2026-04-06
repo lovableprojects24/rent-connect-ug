@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, Copy, Check, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AddTenantDialogProps {
@@ -21,11 +21,33 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
   const [email, setEmail] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
 
+  // Generated credentials state
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
   const resetForm = () => {
     setFullName('');
     setPhone('');
     setEmail('');
     setEmergencyContact('');
+    setCredentials(null);
+    setCopied(false);
+  };
+
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      resetForm();
+    }
+    setOpen(isOpen);
+  };
+
+  const handleCopy = async () => {
+    if (!credentials) return;
+    const text = `Email: ${credentials.email}\nTemporary Password: ${credentials.password}\n\nPlease change your password after first login.`;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Credentials copied to clipboard');
+    setTimeout(() => setCopied(false), 3000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,34 +66,41 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
       toast.error('Valid phone number is required');
       return;
     }
-    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      toast.error('Invalid email format');
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error('A valid email is required to create the tenant login account');
       return;
     }
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('tenants').insert({
-        full_name: trimmedName,
-        phone: trimmedPhone,
-        email: trimmedEmail || null,
-        emergency_contact: emergencyContact.trim() || null,
-        created_by: user.id,
+      const { data, error } = await supabase.functions.invoke('create-tenant', {
+        body: {
+          full_name: trimmedName,
+          email: trimmedEmail,
+          phone: trimmedPhone,
+          emergency_contact: emergencyContact.trim() || null,
+        },
       });
+
       if (error) throw error;
-      toast.success('Tenant added successfully!');
-      resetForm();
-      setOpen(false);
+      if (data?.error) throw new Error(data.error);
+
+      setCredentials({
+        email: data.email,
+        password: data.temporary_password,
+      });
+
+      toast.success('Tenant account created successfully!');
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to add tenant');
+      toast.error(error.message || 'Failed to create tenant');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="w-4 h-4" />
@@ -80,29 +109,69 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-heading">Add New Tenant</DialogTitle>
+          <DialogTitle className="font-heading">
+            {credentials ? 'Tenant Created!' : 'Add New Tenant'}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div className="space-y-2">
-            <Label htmlFor="tenant-name">Full Name *</Label>
-            <Input id="tenant-name" placeholder="e.g. Sarah Namukasa" value={fullName} onChange={e => setFullName(e.target.value)} maxLength={100} required />
+
+        {credentials ? (
+          <div className="space-y-4 mt-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-primary">
+                <KeyRound className="w-5 h-5" />
+                <p className="text-sm font-semibold">Tenant Login Credentials</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Share these credentials with the tenant. They will be asked to change their password on first login.
+              </p>
+              <div className="space-y-2 bg-background rounded-md p-3 border border-border">
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-mono font-medium">{credentials.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Temporary Password</p>
+                  <p className="text-sm font-mono font-medium tracking-wider">{credentials.password}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleCopy} variant="outline" className="flex-1 gap-2">
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Copy Credentials'}
+              </Button>
+              <Button onClick={() => handleClose(false)} className="flex-1">
+                Done
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="tenant-phone">Phone Number *</Label>
-            <Input id="tenant-phone" placeholder="+256 770 123 456" value={phone} onChange={e => setPhone(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tenant-email">Email (optional)</Label>
-            <Input id="tenant-email" type="email" placeholder="tenant@example.com" value={email} onChange={e => setEmail(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tenant-emergency">Emergency Contact (optional)</Label>
-            <Input id="tenant-emergency" placeholder="+256 700 000 000" value={emergencyContact} onChange={e => setEmergencyContact(e.target.value)} />
-          </div>
-          <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? 'Adding…' : 'Add Tenant'}
-          </Button>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            <div className="space-y-2">
+              <Label htmlFor="tenant-name">Full Name *</Label>
+              <Input id="tenant-name" placeholder="e.g. Sarah Namukasa" value={fullName} onChange={e => setFullName(e.target.value)} maxLength={100} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tenant-phone">Phone Number *</Label>
+              <Input id="tenant-phone" placeholder="+256 770 123 456" value={phone} onChange={e => setPhone(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tenant-email">Email * <span className="text-xs text-muted-foreground font-normal">(used for login)</span></Label>
+              <Input id="tenant-email" type="email" placeholder="tenant@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tenant-emergency">Emergency Contact (optional)</Label>
+              <Input id="tenant-emergency" placeholder="+256 700 000 000" value={emergencyContact} onChange={e => setEmergencyContact(e.target.value)} />
+            </div>
+            <p className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2.5">
+              A login account will be created automatically with a temporary password. The tenant must change it on first login.
+            </p>
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? 'Creating account…' : 'Create Tenant Account'}
+            </Button>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
