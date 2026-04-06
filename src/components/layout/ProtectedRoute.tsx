@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
+  const { session, loading, profile } = useAuth();
 
   if (loading) {
     return (
@@ -13,6 +13,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!session) return <Navigate to="/auth" replace />;
+
+  if (profile?.must_change_password) {
+    return <Navigate to="/change-password" replace />;
+  }
 
   return <>{children}</>;
 }
