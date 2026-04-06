@@ -97,7 +97,9 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {visibleItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = isTenantOnly
+              ? location.pathname + location.search === item.path
+              : location.pathname === item.path;
             return (
               <Link
                 key={item.path}

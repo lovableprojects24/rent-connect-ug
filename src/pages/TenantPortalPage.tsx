@@ -8,7 +8,8 @@ import MaintenanceTab from '@/components/tenant-portal/MaintenanceTab';
 import LeaseTab from '@/components/tenant-portal/LeaseTab';
 import { AlertCircle, Wallet, Wrench, FileText } from 'lucide-react';
 
-export default function TenantPortalPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'financial';
   const { user } = useAuth();
   const [tenant, setTenant] = useState<any>(null);
   const [leases, setLeases] = useState<any[]>([]);
