@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,6 +9,8 @@ import LeaseTab from '@/components/tenant-portal/LeaseTab';
 import { AlertCircle, Wallet, Wrench, FileText } from 'lucide-react';
 
 export default function TenantPortalPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'financial';
   const { user } = useAuth();
   const [tenant, setTenant] = useState<any>(null);
   const [leases, setLeases] = useState<any[]>([]);
@@ -73,7 +76,7 @@ export default function TenantPortalPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="financial" className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setSearchParams({ tab: v })} className="w-full">
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="financial" className="gap-1.5 text-xs sm:text-sm">
             <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Financial</span>

@@ -13,6 +13,8 @@ import {
   Home,
   Shield,
   PieChart,
+  Wallet,
+  FileText,
   LucideIcon,
 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
@@ -23,11 +25,10 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   path: string;
-  /** Roles that can see this item. undefined = visible to all authenticated users */
   roles?: AppRole[];
 }
 
-const navItems: NavItem[] = [
+const adminNavItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['admin', 'landlord', 'agent', 'finance'] },
   { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin', 'landlord', 'agent'] },
   { label: 'Tenants', icon: Users, path: '/tenants', roles: ['admin', 'landlord', 'agent'] },
@@ -36,10 +37,14 @@ const navItems: NavItem[] = [
   { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Finance', icon: PieChart, path: '/finance', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Staff', icon: Shield, path: '/staff', roles: ['admin', 'landlord'] },
-  { label: 'My Portal', icon: Home, path: '/portal', roles: ['tenant'] },
   { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['admin', 'landlord', 'agent', 'finance'] },
 ];
 
+const tenantNavItems: NavItem[] = [
+  { label: 'Financial', icon: Wallet, path: '/portal?tab=financial' },
+  { label: 'Maintenance', icon: Wrench, path: '/portal?tab=maintenance' },
+  { label: 'Lease & Docs', icon: FileText, path: '/portal?tab=lease' },
+];
 interface AppSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,16 +54,19 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
+  const isTenantOnly = roles.includes('tenant') && roles.length === 1;
 
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
   };
 
-  const visibleItems = navItems.filter(item => {
-    if (!item.roles) return true;
-    return item.roles.some(r => roles.includes(r));
-  });
+  const visibleItems = isTenantOnly
+    ? tenantNavItems
+    : adminNavItems.filter(item => {
+        if (!item.roles) return true;
+        return item.roles.some(r => roles.includes(r));
+      });
 
   return (
     <>
@@ -89,7 +97,9 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {visibleItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = isTenantOnly
+              ? location.pathname + location.search === item.path
+              : location.pathname === item.path;
             return (
               <Link
                 key={item.path}
