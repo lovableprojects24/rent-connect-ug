@@ -5,7 +5,12 @@ import AppSidebar from './AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AppLayout() {
+  const { profile } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const initials = profile?.full_name
+    ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '??';
+  const displayName = profile?.full_name || 'User';
 
   return (
     <div className="min-h-screen bg-background">
