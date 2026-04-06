@@ -461,7 +461,12 @@ export type Database = {
       lease_status: "active" | "inactive" | "pending" | "terminated"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "open" | "in_progress" | "resolved" | "closed"
-      payment_method: "mtn_momo" | "airtel_money" | "cash" | "bank_transfer"
+      payment_method:
+        | "mtn_momo"
+        | "airtel_money"
+        | "cash"
+        | "bank_transfer"
+        | "pesapal"
       payment_status: "completed" | "pending" | "failed"
       payment_type: "rent" | "deposit" | "maintenance"
       unit_status: "occupied" | "vacant" | "reserved"
@@ -597,7 +602,13 @@ export const Constants = {
       lease_status: ["active", "inactive", "pending", "terminated"],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["open", "in_progress", "resolved", "closed"],
-      payment_method: ["mtn_momo", "airtel_money", "cash", "bank_transfer"],
+      payment_method: [
+        "mtn_momo",
+        "airtel_money",
+        "cash",
+        "bank_transfer",
+        "pesapal",
+      ],
       payment_status: ["completed", "pending", "failed"],
       payment_type: ["rent", "deposit", "maintenance"],
       unit_status: ["occupied", "vacant", "reserved"],

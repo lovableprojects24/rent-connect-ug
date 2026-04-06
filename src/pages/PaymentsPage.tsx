@@ -19,6 +19,7 @@ const methodLabels: Record<PaymentMethod, string> = {
   airtel_money: 'Airtel Money',
   cash: 'Cash',
   bank_transfer: 'Bank Transfer',
+  pesapal: 'Pesapal',
 };
 
 const methodIcons: Record<PaymentMethod, string> = {
@@ -26,6 +27,7 @@ const methodIcons: Record<PaymentMethod, string> = {
   airtel_money: '🔴',
   cash: '💵',
   bank_transfer: '🏦',
+  pesapal: '🌐',
 };
 
 export default function PaymentsPage() {

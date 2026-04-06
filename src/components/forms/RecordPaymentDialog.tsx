@@ -17,6 +17,7 @@ type PaymentStatus = Database['public']['Enums']['payment_status'];
 const METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'mtn_momo', label: 'MTN MoMo' },
   { value: 'airtel_money', label: 'Airtel Money' },
+  { value: 'pesapal', label: 'Pesapal' },
   { value: 'cash', label: 'Cash' },
   { value: 'bank_transfer', label: 'Bank Transfer' },
 ];

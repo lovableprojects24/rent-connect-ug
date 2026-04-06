@@ -16,10 +16,10 @@ type Payment = Tables<'payments'>;
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 const methodLabels: Record<PaymentMethod, string> = {
-  mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank Transfer',
+  mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank Transfer', pesapal: 'Pesapal',
 };
 const methodIcons: Record<PaymentMethod, string> = {
-  mtn_momo: '🟡', airtel_money: '🔴', cash: '💵', bank_transfer: '🏦',
+  mtn_momo: '🟡', airtel_money: '🔴', cash: '💵', bank_transfer: '🏦', pesapal: '🌐',
 };
 
 export default function TenantDetailPage() {
