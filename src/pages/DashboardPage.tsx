@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Building2, Users, CreditCard, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -8,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
+  const { roles } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     propertyCount: 0,
@@ -23,9 +26,11 @@ export default function DashboardPage() {
   const [recentMaintenance, setRecentMaintenance] = useState<any[]>([]);
   const [paymentMethodData, setPaymentMethodData] = useState<any[]>([]);
 
+  const isTenantOnly = roles.includes('tenant') && roles.length === 1;
+
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!isTenantOnly) fetchDashboardData();
+  }, [isTenantOnly]);
 
   const fetchDashboardData = async () => {
     const [
@@ -77,6 +82,10 @@ export default function DashboardPage() {
 
     setLoading(false);
   };
+
+  if (isTenantOnly) {
+    return <Navigate to="/portal" replace />;
+  }
 
   if (loading) {
     return (

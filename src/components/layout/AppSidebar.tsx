@@ -28,7 +28,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['admin', 'landlord', 'agent', 'finance'] },
   { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin', 'landlord', 'agent'] },
   { label: 'Tenants', icon: Users, path: '/tenants', roles: ['admin', 'landlord', 'agent'] },
   { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'landlord', 'agent', 'finance'] },
@@ -37,7 +37,7 @@ const navItems: NavItem[] = [
   { label: 'Finance', icon: PieChart, path: '/finance', roles: ['admin', 'landlord', 'finance'] },
   { label: 'Staff', icon: Shield, path: '/staff', roles: ['admin', 'landlord'] },
   { label: 'My Portal', icon: Home, path: '/portal', roles: ['tenant'] },
-  { label: 'Notifications', icon: Bell, path: '/notifications' },
+  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['admin', 'landlord', 'agent', 'finance'] },
 ];
 
 interface AppSidebarProps {
