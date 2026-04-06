@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
@@ -13,6 +14,7 @@ import type { Tables } from '@/integrations/supabase/types';
 type Property = Tables<'properties'>;
 
 export default function PropertiesPage() {
+  const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [editProperty, setEditProperty] = useState<Property | null>(null);
@@ -78,7 +80,7 @@ export default function PropertiesPage() {
               </div>
               <div className="p-4 space-y-3">
                 <div>
-                  <h3 className="font-heading font-semibold">{property.name}</h3>
+                  <h3 className="font-heading font-semibold cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/properties/${property.id}`)}>{property.name}</h3>
                   <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                     <MapPin className="w-3.5 h-3.5" /> {property.location}
                   </p>
