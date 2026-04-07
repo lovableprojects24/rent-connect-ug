@@ -1,48 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Mail, Users, Pencil, Trash2, ChevronRight } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Phone, Mail, Users, Pencil, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import AddTenantDialog from '@/components/forms/AddTenantDialog';
 import AddLeaseDialog from '@/components/forms/AddLeaseDialog';
 import EditTenantDialog from '@/components/forms/EditTenantDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
-import { toast } from 'sonner';
+import { useTenants, useDeleteTenant } from '@/hooks/useTenants';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
 
 export default function TenantsPage() {
   const navigate = useNavigate();
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: tenants = [], isLoading: loading } = useTenants();
+  const deleteTenantMutation = useDeleteTenant();
   const [editTenant, setEditTenant] = useState<Tenant | null>(null);
   const [deleteTenant, setDeleteTenant] = useState<Tenant | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const fetchTenants = async () => {
-    const { data } = await supabase.from('tenants').select('*').order('created_at', { ascending: false });
-    if (data) setTenants(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchTenants(); }, []);
 
   const handleDelete = async () => {
     if (!deleteTenant) return;
-    setDeleting(true);
-    try {
-      const { error } = await supabase.from('tenants').delete().eq('id', deleteTenant.id);
-      if (error) throw error;
-      toast.success('Tenant deleted');
-      setDeleteTenant(null);
-      fetchTenants();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete tenant');
-    } finally {
-      setDeleting(false);
-    }
+    await deleteTenantMutation.mutateAsync(deleteTenant.id);
+    setDeleteTenant(null);
   };
 
   return (
@@ -53,8 +33,8 @@ export default function TenantsPage() {
           <p className="text-muted-foreground text-sm mt-1">{tenants.length} tenants across all properties</p>
         </div>
         <div className="flex gap-2">
-          <AddLeaseDialog onSuccess={fetchTenants} />
-          <AddTenantDialog onSuccess={fetchTenants} />
+          <AddLeaseDialog onSuccess={() => {}} />
+          <AddTenantDialog onSuccess={() => {}} />
         </div>
       </div>
 
@@ -140,8 +120,8 @@ export default function TenantsPage() {
         </>
       )}
 
-      <EditTenantDialog tenant={editTenant} open={!!editTenant} onOpenChange={(o) => !o && setEditTenant(null)} onSuccess={fetchTenants} />
-      <DeleteConfirmDialog open={!!deleteTenant} onOpenChange={(o) => !o && setDeleteTenant(null)} onConfirm={handleDelete} loading={deleting} title="Delete Tenant" description={`Are you sure you want to delete "${deleteTenant?.full_name}"? This cannot be undone.`} />
+      <EditTenantDialog tenant={editTenant} open={!!editTenant} onOpenChange={(o) => !o && setEditTenant(null)} onSuccess={() => {}} />
+      <DeleteConfirmDialog open={!!deleteTenant} onOpenChange={(o) => !o && setDeleteTenant(null)} onConfirm={handleDelete} loading={deleteTenantMutation.isPending} title="Delete Tenant" description={`Are you sure you want to delete "${deleteTenant?.full_name}"? This cannot be undone.`} />
     </div>
   );
 }

@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Download, CreditCard, Pencil, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/data/mock-data';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -8,57 +7,29 @@ import { motion } from 'framer-motion';
 import RecordPaymentDialog from '@/components/forms/RecordPaymentDialog';
 import EditPaymentDialog from '@/components/forms/EditPaymentDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
-import { toast } from 'sonner';
+import { usePayments, useDeletePayment } from '@/hooks/usePayments';
 import type { Tables, Database } from '@/integrations/supabase/types';
 
 type Payment = Tables<'payments'>;
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 const methodLabels: Record<PaymentMethod, string> = {
-  mtn_momo: 'MTN MoMo',
-  airtel_money: 'Airtel Money',
-  cash: 'Cash',
-  bank_transfer: 'Bank Transfer',
-  pesapal: 'Pesapal',
+  mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank Transfer', pesapal: 'Pesapal',
 };
-
 const methodIcons: Record<PaymentMethod, string> = {
-  mtn_momo: '🟡',
-  airtel_money: '🔴',
-  cash: '💵',
-  bank_transfer: '🏦',
-  pesapal: '🌐',
+  mtn_momo: '🟡', airtel_money: '🔴', cash: '💵', bank_transfer: '🏦', pesapal: '🌐',
 };
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: payments = [], isLoading: loading } = usePayments();
+  const deletePaymentMutation = useDeletePayment();
   const [editPayment, setEditPayment] = useState<Payment | null>(null);
   const [deletePayment, setDeletePayment] = useState<Payment | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const fetchPayments = async () => {
-    const { data } = await supabase.from('payments').select('*').order('payment_date', { ascending: false });
-    if (data) setPayments(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchPayments(); }, []);
 
   const handleDelete = async () => {
     if (!deletePayment) return;
-    setDeleting(true);
-    try {
-      const { error } = await supabase.from('payments').delete().eq('id', deletePayment.id);
-      if (error) throw error;
-      toast.success('Payment deleted');
-      setDeletePayment(null);
-      fetchPayments();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete payment');
-    } finally {
-      setDeleting(false);
-    }
+    await deletePaymentMutation.mutateAsync(deletePayment.id);
+    setDeletePayment(null);
   };
 
   const totalCollected = payments.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0);
@@ -75,7 +46,7 @@ export default function PaymentsPage() {
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
           </Button>
-          <RecordPaymentDialog onSuccess={fetchPayments} />
+          <RecordPaymentDialog onSuccess={() => {}} />
         </div>
       </div>
 
@@ -112,13 +83,7 @@ export default function PaymentsPage() {
           {/* Mobile cards */}
           <div className="space-y-3 lg:hidden">
             {payments.map((payment, i) => (
-              <motion.div
-                key={payment.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="bg-card rounded-xl border border-border p-4"
-              >
+              <motion.div key={payment.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="bg-card rounded-xl border border-border p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">{methodIcons[payment.method]}</span>
@@ -189,8 +154,8 @@ export default function PaymentsPage() {
         </>
       )}
 
-      <EditPaymentDialog payment={editPayment} open={!!editPayment} onOpenChange={(o) => !o && setEditPayment(null)} onSuccess={fetchPayments} />
-      <DeleteConfirmDialog open={!!deletePayment} onOpenChange={(o) => !o && setDeletePayment(null)} onConfirm={handleDelete} loading={deleting} title="Delete Payment" description={`Are you sure you want to delete this ${formatUGX(deletePayment?.amount || 0)} payment? This cannot be undone.`} />
+      <EditPaymentDialog payment={editPayment} open={!!editPayment} onOpenChange={(o) => !o && setEditPayment(null)} onSuccess={() => {}} />
+      <DeleteConfirmDialog open={!!deletePayment} onOpenChange={(o) => !o && setDeletePayment(null)} onConfirm={handleDelete} loading={deletePaymentMutation.isPending} title="Delete Payment" description={`Are you sure you want to delete this ${formatUGX(deletePayment?.amount || 0)} payment? This cannot be undone.`} />
     </div>
   );
 }

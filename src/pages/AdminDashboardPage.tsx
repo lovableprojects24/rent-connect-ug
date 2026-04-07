@@ -1,98 +1,58 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, Users, Shield, CreditCard, UserPlus, Settings, ArrowRight, Activity } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdminDashboardData } from '@/hooks/useDashboard';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { formatUGX } from '@/data/mock-data';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { useMemo } from 'react';
 
 export default function AdminDashboardPage() {
   const { profile } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalProperties: 0,
-    totalUnits: 0,
-    occupiedUnits: 0,
-    totalTenants: 0,
-    totalStaff: 0,
-    totalRevenue: 0,
-    pendingAmount: 0,
-    openMaintenance: 0,
-  });
-  const [staffMembers, setStaffMembers] = useState<any[]>([]);
-  const [recentPayments, setRecentPayments] = useState<any[]>([]);
-  const [propertyOverview, setPropertyOverview] = useState<any[]>([]);
+  const { data, isLoading: loading } = useAdminDashboardData();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const computed = useMemo(() => {
+    if (!data) return null;
+    const { properties, units, tenants, payments, maintenance, roles, profiles } = data;
 
-  const fetchData = async () => {
-    const [
-      { data: properties },
-      { data: units },
-      { data: tenants },
-      { data: payments },
-      { data: maintenance },
-      { data: roles },
-      { data: profiles },
-    ] = await Promise.all([
-      supabase.from('properties').select('*'),
-      supabase.from('units').select('*'),
-      supabase.from('tenants').select('*'),
-      supabase.from('payments').select('*').order('payment_date', { ascending: false }),
-      supabase.from('maintenance_requests').select('*'),
-      supabase.from('user_roles').select('*'),
-      supabase.from('profiles').select('*'),
-    ]);
-
-    const totalProperties = properties?.length || 0;
-    const totalUnits = units?.length || 0;
-    const occupiedUnits = units?.filter(u => u.status === 'occupied').length || 0;
-    const totalTenants = tenants?.length || 0;
-    // Staff = non-tenant roles
-    const staffRoles = roles?.filter(r => r.role !== 'tenant') || [];
+    const totalUnits = units.length;
+    const occupiedUnits = units.filter(u => u.status === 'occupied').length;
+    const staffRoles = roles.filter(r => r.role !== 'tenant');
     const uniqueStaffIds = [...new Set(staffRoles.map(r => r.user_id))];
-    const totalStaff = uniqueStaffIds.length;
-    const totalRevenue = payments?.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0) || 0;
-    const pendingAmount = payments?.filter(p => p.status === 'pending').reduce((a, p) => a + p.amount, 0) || 0;
-    const openMaintenance = maintenance?.filter(m => m.status === 'open' || m.status === 'in_progress').length || 0;
+    const totalRevenue = payments.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0);
+    const pendingAmount = payments.filter(p => p.status === 'pending').reduce((a, p) => a + p.amount, 0);
+    const openMaintenance = maintenance.filter(m => m.status === 'open' || m.status === 'in_progress').length;
 
-    setStats({ totalProperties, totalUnits, occupiedUnits, totalTenants, totalStaff, totalRevenue, pendingAmount, openMaintenance });
-
-    // Staff list with profiles
-    const staffList = uniqueStaffIds.slice(0, 8).map(uid => {
-      const prof = profiles?.find(p => p.user_id === uid);
+    const staffMembers = uniqueStaffIds.slice(0, 8).map(uid => {
+      const prof = profiles.find(p => p.user_id === uid);
       const userRoles = staffRoles.filter(r => r.user_id === uid).map(r => r.role);
       return { userId: uid, name: prof?.full_name || 'Unnamed', phone: prof?.phone || '-', roles: userRoles };
     });
-    setStaffMembers(staffList);
 
-    // Property overview
-    const propOverview = (properties || []).slice(0, 6).map(p => {
-      const propUnits = units?.filter(u => u.property_id === p.id) || [];
+    const propertyOverview = properties.slice(0, 6).map(p => {
+      const propUnits = units.filter(u => u.property_id === p.id);
       const occupied = propUnits.filter(u => u.status === 'occupied').length;
-      const propPayments = payments?.filter(pay => pay.property_id === p.id && pay.status === 'completed') || [];
-      const revenue = propPayments.reduce((a, pay) => a + pay.amount, 0);
+      const revenue = payments.filter(pay => pay.property_id === p.id && pay.status === 'completed').reduce((a, pay) => a + pay.amount, 0);
       return { id: p.id, name: p.name, location: p.location, totalUnits: propUnits.length, occupied, revenue };
     });
-    setPropertyOverview(propOverview);
 
-    // Recent payments
-    const recentPays = (payments || []).slice(0, 5).map(p => {
-      const tenant = tenants?.find(t => t.id === p.tenant_id);
-      const prop = properties?.find(pr => pr.id === p.property_id);
+    const recentPayments = payments.slice(0, 5).map(p => {
+      const tenant = tenants.find(t => t.id === p.tenant_id);
+      const prop = properties.find(pr => pr.id === p.property_id);
       return { ...p, tenantName: tenant?.full_name || 'Unknown', propertyName: prop?.name || '-' };
     });
-    setRecentPayments(recentPays);
 
-    setLoading(false);
-  };
+    return {
+      stats: { totalProperties: properties.length, totalUnits, occupiedUnits, totalTenants: tenants.length, totalStaff: uniqueStaffIds.length, totalRevenue, pendingAmount, openMaintenance },
+      staffMembers,
+      propertyOverview,
+      recentPayments,
+    };
+  }, [data]);
 
-  if (loading) {
+  if (loading || !computed) {
     return (
       <div className="flex justify-center py-12">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -100,6 +60,7 @@ export default function AdminDashboardPage() {
     );
   }
 
+  const { stats, staffMembers, propertyOverview, recentPayments } = computed;
   const occupancyRate = stats.totalUnits > 0 ? Math.round((stats.occupiedUnits / stats.totalUnits) * 100) : 0;
 
   return (
@@ -123,7 +84,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* System-wide Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Properties" value={stats.totalProperties.toString()} subtitle={`${occupancyRate}% occupancy`} icon={Building2} variant="primary" delay={0} />
         <StatCard title="Tenants" value={stats.totalTenants.toString()} subtitle={`${stats.totalUnits} total units`} icon={Users} variant="info" delay={0.1} />
@@ -131,9 +91,7 @@ export default function AdminDashboardPage() {
         <StatCard title="Total Revenue" value={formatUGX(stats.totalRevenue)} subtitle={formatUGX(stats.pendingAmount) + ' pending'} icon={CreditCard} variant="warning" delay={0.3} />
       </div>
 
-      {/* Staff + Property Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Staff Members */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold flex items-center gap-2">
@@ -176,7 +134,6 @@ export default function AdminDashboardPage() {
           )}
         </motion.div>
 
-        {/* Property Overview */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold flex items-center gap-2">
@@ -212,7 +169,6 @@ export default function AdminDashboardPage() {
         </motion.div>
       </div>
 
-      {/* Recent System Activity */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-card rounded-xl border border-border p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-heading font-semibold flex items-center gap-2">
