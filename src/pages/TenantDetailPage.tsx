@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, Mail, AlertCircle, Calendar, Building2, CreditCard, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import ResetPasswordButton from '@/components/shared/ResetPasswordButton';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -93,6 +94,9 @@ export default function TenantDetailPage() {
             {tenant.emergency_contact && <span className="flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />Emergency: {tenant.emergency_contact}</span>}
           </div>
         </div>
+        {tenant.user_id && (
+          <ResetPasswordButton targetUserId={tenant.user_id} targetName={tenant.full_name} />
+        )}
       </div>
 
       {/* Balance Overview */}
