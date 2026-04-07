@@ -76,6 +76,7 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
+  const { unreadCount } = useNotifications();
   const isTenantOnly = roles.includes('tenant') && roles.length === 1;
 
   const handleLogout = async () => {
