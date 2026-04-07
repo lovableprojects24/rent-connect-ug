@@ -211,6 +211,48 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          default_rent_due_day: number | null
+          id: string
+          payment_methods: Json | null
+          steps_completed: Json
+          system_contact: string | null
+          system_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          default_rent_due_day?: number | null
+          id?: string
+          payment_methods?: Json | null
+          steps_completed?: Json
+          system_contact?: string | null
+          system_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          default_rent_due_day?: number | null
+          id?: string
+          payment_methods?: Json | null
+          steps_completed?: Json
+          system_contact?: string | null
+          system_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
