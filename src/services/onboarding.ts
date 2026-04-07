@@ -35,7 +35,7 @@ export const onboardingService = {
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
-    return data as OnboardingProgress | null;
+    return data as unknown as OnboardingProgress | null;
   },
 
   async create(userId: string): Promise<OnboardingProgress> {
