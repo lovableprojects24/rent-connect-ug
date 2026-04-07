@@ -26,22 +26,9 @@ export default function AuthPage() {
     setSubmitting(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success('Welcome back!');
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
-        toast.success('Account created! Check your email to confirm.');
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success('Welcome back!');
     } catch (error: any) {
       toast.error(error.message || 'Authentication failed');
     } finally {
@@ -52,7 +39,6 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo Card */}
         <div className="bg-card rounded-2xl p-8 shadow-xl mb-6 text-center">
           <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-primary" />
@@ -61,39 +47,10 @@ export default function AuthPage() {
           <p className="text-muted-foreground">Property Management System</p>
         </div>
 
-        {/* Form */}
         <div className="bg-card rounded-2xl p-8 shadow-xl">
-          <h2 className="font-heading font-semibold text-xl mb-6">
-            {isLogin ? 'Sign In' : 'Create Account'}
-          </h2>
+          <h2 className="font-heading font-semibold text-xl mb-6">Sign In</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div>
-                  <label className="block mb-2 text-sm font-medium">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 text-sm font-medium">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="+256 700 000 000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-              </>
-            )}
-
             <div>
               <label className="block mb-2 text-sm font-medium">Email</label>
               <input
@@ -119,34 +76,19 @@ export default function AuthPage() {
               />
             </div>
 
-            {isLogin && (
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Remember me</span>
-                </label>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={submitting}
               className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
             >
-              {submitting ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+              {submitting ? 'Please wait...' : 'Sign In'}
             </button>
           </form>
-        </div>
 
-        <p className="text-center mt-6 text-sm text-muted-foreground">
-          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-primary font-medium hover:underline"
-          >
-            {isLogin ? 'Register' : 'Sign In'}
-          </button>
-        </p>
+          <p className="text-center mt-4 text-xs text-muted-foreground">
+            Account credentials are provided by your administrator.
+          </p>
+        </div>
       </div>
     </div>
   );
