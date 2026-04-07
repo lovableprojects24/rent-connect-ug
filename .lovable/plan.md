@@ -1,43 +1,31 @@
 
-# Frontend Rebuild from UI Design Package
+## Onboarding Wizard Plan
 
-## What we keep (unchanged)
-- All Supabase backend: tables, RLS, migrations, edge functions
-- Auth system (AuthContext, ProtectedRoute)
-- Services layer (src/services/*)
-- Custom hooks (src/hooks/*)
-- Supabase client & types
+### Database
+1. **`onboarding_progress` table** — tracks which steps each admin has completed
+   - Fields: user_id, current_step (1-6), steps_completed (jsonb), completed_at
+   - RLS: admins can manage own progress
 
-## What we rebuild
+### Steps (Wizard UI)
+1. **System Setup** — Admin sets system name, contact info, default rent due date
+2. **Manager Creation** — Create manager accounts (reuse AddStaffDialog logic)
+3. **Property & Unit Setup** — Add properties and rooms (reuse existing forms)
+4. **Tenant Registration** — Add tenants and assign to units (reuse AddTenantDialog)
+5. **Lease Creation** — Create lease linking tenant → unit → property
+6. **Payment Config** — Configure payment methods, initialize payment status
 
-### 1. Design System (theme + CSS)
-- Replace green/gold palette with blue primary (#2563eb) from design
-- White cards, light background (#f8fafb), clean borders
-- Add success/warning/info tokens from design
-- Update sidebar tokens
+### Frontend
+- New `OnboardingPage.tsx` with stepper wizard UI
+- Each step validates completion before allowing next
+- Progress persisted in database
+- Admin dashboard checks if onboarding is complete; redirects if not
+- Skip option for steps that already have data
 
-### 2. Layout System
-- Rebuild AppLayout with the design's header (role indicator + user avatar)
-- Rebuild AppSidebar matching design's clean white sidebar style
-- Keep existing role-based nav logic but use new visual treatment
+### Security
+- Only admins can access onboarding
+- JWT auth already in place
+- Role-based access already implemented
 
-### 3. Page Components (all rebuilt to match design visuals, wired to existing hooks)
-- **Auth pages**: LoginScreen, RegisterScreen, ForgotPassword → new gradient blue auth pages
-- **Admin Dashboard**: Stat cards, rent collection chart, occupancy donut, recent payments table
-- **Manager Dashboard**: Stats, payment alerts banner, unpaid tenants table, quick stats + vacant rooms
-- **Tenant Dashboard/Portal**: Rent status hero card, quick actions, lease details, payment history
-- **Properties Page**: Card grid with gradient headers, occupancy stats, search/filter
-- **Tenants Page**: Table with contact info, status badges, summary cards
-- **Payments Page**: Summary cards (collected/pending/overdue/rate), table with method + reference
-- **Maintenance Page**: Status stat cards, card grid with priority badges, request modal
-- **Notifications Page**: Clean list with icon badges, read/unread states
-- **Settings Page**: 3-column layout with nav menu + profile/password/notification preferences
-- **Staff/Managers Page**: Table with avatar initials, property/tenant counts
-
-### 4. Shared Components
-- Rebuild StatCard matching design (white card, colored icon bg)
-- Rebuild StatusBadge matching design (rounded-full, colored borders)
-
-### 5. Branding
-- Keep "RentFlow" name throughout (not TenantHub)
-- Keep "Uganda Edition" subtitle
+### No Django
+- Project uses React + Supabase (Lovable Cloud), not Django
+- All endpoints are already available via Supabase client SDK
