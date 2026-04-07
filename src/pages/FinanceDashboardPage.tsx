@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { usePayments } from '@/hooks/usePayments';
 import { useLeases } from '@/hooks/useLeases';
 import { useTenantNames } from '@/hooks/useTenants';
+import { useProperties } from '@/hooks/useProperties';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatUGX } from '@/lib/utils';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -11,9 +13,10 @@ import {
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock,
+  CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock, Building2,
 } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const METHOD_LABELS: Record<string, string> = {
   mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank Transfer',
@@ -26,10 +29,26 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function FinanceDashboardPage() {
-  const { data: payments = [], isLoading: paymentsLoading } = usePayments();
-  const { data: leases = [], isLoading: leasesLoading } = useLeases();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes('admin');
+  const { data: allPayments = [], isLoading: paymentsLoading } = usePayments();
+  const { data: allLeases = [], isLoading: leasesLoading } = useLeases();
   const { data: tenants = [], isLoading: tenantsLoading } = useTenantNames();
-  const loading = paymentsLoading || leasesLoading || tenantsLoading;
+  const { data: properties = [], isLoading: propertiesLoading } = useProperties();
+  const loading = paymentsLoading || leasesLoading || tenantsLoading || propertiesLoading;
+
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('all');
+
+  // Filter payments and leases by selected property
+  const payments = useMemo(() => {
+    if (selectedPropertyId === 'all') return allPayments;
+    return allPayments.filter(p => p.property_id === selectedPropertyId);
+  }, [allPayments, selectedPropertyId]);
+
+  const leases = useMemo(() => {
+    if (selectedPropertyId === 'all') return allLeases;
+    return allLeases.filter(l => l.property_id === selectedPropertyId);
+  }, [allLeases, selectedPropertyId]);
 
   const totalCompleted = useMemo(() => payments.filter(p => p.status === 'completed').reduce((s, p) => s + p.amount, 0), [payments]);
   const totalPending = useMemo(() => payments.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0), [payments]);
