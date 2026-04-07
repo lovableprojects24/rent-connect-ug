@@ -9,6 +9,7 @@ import AddUnitDialog from '@/components/forms/AddUnitDialog';
 import BulkAddUnitsDialog from '@/components/forms/BulkAddUnitsDialog';
 import EditUnitDialog from '@/components/forms/EditUnitDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
+import TransferUnitDialog from '@/components/forms/TransferUnitDialog';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
