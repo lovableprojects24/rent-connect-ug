@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import {
-  LayoutDashboard,
   Building2,
   Users,
   DollarSign,
@@ -12,10 +11,6 @@ import {
   Settings,
   LogOut,
   Home,
-  Shield,
-  PieChart,
-  Wallet,
-  FileText,
   LucideIcon,
 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
@@ -26,38 +21,31 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   path: string;
-  roles?: AppRole[];
 }
 
 const adminNavItems: NavItem[] = [
-  { label: 'Dashboard', icon: Home, path: '/', roles: ['admin'] },
-  { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin'] },
-  { label: 'Managers', icon: Users, path: '/staff', roles: ['admin'] },
-  { label: 'All Tenants', icon: Users, path: '/tenants', roles: ['admin'] },
-  { label: 'Payments', icon: DollarSign, path: '/payments', roles: ['admin'] },
-  { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['admin'] },
-  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['admin'] },
-  { label: 'Settings', icon: Settings, path: '/settings', roles: ['admin'] },
+  { label: 'Dashboard', icon: Home, path: '/' },
+  { label: 'Properties', icon: Building2, path: '/properties' },
+  { label: 'Managers', icon: Users, path: '/staff' },
+  { label: 'All Tenants', icon: Users, path: '/tenants' },
+  { label: 'Payments', icon: DollarSign, path: '/payments' },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
+  { label: 'Reports', icon: BarChart3, path: '/reports' },
+  { label: 'Notifications', icon: Bell, path: '/notifications' },
+  { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 const managerNavItems: NavItem[] = [
-  { label: 'Dashboard', icon: Home, path: '/', roles: ['landlord', 'agent'] },
-  { label: 'My Properties', icon: Building2, path: '/properties', roles: ['landlord', 'agent'] },
-  { label: 'Tenants', icon: Users, path: '/tenants', roles: ['landlord', 'agent'] },
-  { label: 'Payments', icon: DollarSign, path: '/payments', roles: ['landlord', 'agent'] },
-  { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['landlord', 'agent'] },
-  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['landlord', 'agent'] },
-];
-
-const financeNavItems: NavItem[] = [
-  { label: 'Finance', icon: PieChart, path: '/finance', roles: ['finance'] },
-  { label: 'Payments', icon: DollarSign, path: '/payments', roles: ['finance'] },
-  { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['finance'] },
-  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['finance'] },
+  { label: 'Dashboard', icon: Home, path: '/' },
+  { label: 'My Properties', icon: Building2, path: '/properties' },
+  { label: 'Tenants', icon: Users, path: '/tenants' },
+  { label: 'Payments', icon: DollarSign, path: '/payments' },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
+  { label: 'Notifications', icon: Bell, path: '/notifications' },
 ];
 
 const tenantNavItems: NavItem[] = [
-  { label: 'Dashboard', icon: Home, path: '/portal?tab=financial' },
+  { label: 'Dashboard', icon: Home, path: '/portal' },
   { label: 'My Payments', icon: DollarSign, path: '/portal?tab=financial' },
   { label: 'Maintenance', icon: Wrench, path: '/portal?tab=maintenance' },
   { label: 'Notifications', icon: Bell, path: '/notifications' },
@@ -73,7 +61,7 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
   const { unreadCount } = useNotifications();
-  const isTenantOnly = roles.includes('tenant') && roles.length === 1;
+  const isTenantOnly = roles.includes('tenant') && !roles.includes('admin') && !roles.includes('manager');
 
   const handleLogout = async () => {
     await signOut();
@@ -81,22 +69,23 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   };
 
   const getNavItems = () => {
-    if (isTenantOnly) return tenantNavItems;
     if (roles.includes('admin')) return adminNavItems;
-    if (roles.includes('finance') && !roles.includes('landlord') && !roles.includes('agent')) return financeNavItems;
-    return managerNavItems;
+    if (roles.includes('manager')) return managerNavItems;
+    return tenantNavItems;
+  };
+
+  const getRoleLabel = () => {
+    if (roles.includes('admin')) return 'Admin Portal';
+    if (roles.includes('manager')) return 'Manager Portal';
+    return 'Tenant Portal';
   };
 
   const visibleItems = getNavItems();
 
   return (
     <>
-      {/* Overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onClose} />
       )}
 
       <aside
@@ -104,20 +93,16 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        {/* Logo */}
         <div className="p-6 border-b border-border">
           <h1 className="text-primary font-heading font-bold text-xl">RentFlow</h1>
-          <p className="text-sm text-muted-foreground capitalize">
-            {roles[0] ? `${roles[0]} Portal` : 'Uganda Edition'}
-          </p>
+          <p className="text-sm text-muted-foreground">{getRoleLabel()}</p>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
             {visibleItems.map((item) => {
               const isActive = isTenantOnly
-                ? location.pathname + location.search === item.path
+                ? location.pathname + location.search === item.path || (item.path === '/portal' && location.pathname === '/portal' && !location.search)
                 : location.pathname === item.path;
               return (
                 <li key={item.path + item.label}>
@@ -146,7 +131,6 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
           </ul>
         </nav>
 
-        {/* Logout */}
         <div className="p-4 border-t border-border">
           <button
             onClick={handleLogout}
