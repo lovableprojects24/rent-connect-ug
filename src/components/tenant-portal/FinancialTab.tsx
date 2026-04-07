@@ -1,4 +1,4 @@
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import StatCard from '@/components/shared/StatCard';

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Property = Tables<'properties'>;
