@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, AlertCircle, Clock, CheckCircle, Wrench } from 'lucide-react';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { useMaintenance } from '@/hooks/useMaintenance';
+import { useMaintenanceRequests } from '@/hooks/useMaintenance';
 import ReportMaintenanceDialog from '@/components/forms/ReportMaintenanceDialog';
 
 export default function MaintenancePage() {
