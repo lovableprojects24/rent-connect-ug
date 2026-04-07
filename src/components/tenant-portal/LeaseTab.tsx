@@ -1,4 +1,4 @@
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { Building2, FileText } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 
 const METHOD_LABELS: Record<string, string> = {
   mtn_momo: 'MTN MoMo',

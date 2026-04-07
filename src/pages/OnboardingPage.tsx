@@ -15,7 +15,7 @@ import {
   Settings, UserPlus, Building2, Users, FileText, CreditCard,
   CheckCircle2, ChevronRight, ChevronLeft, ArrowRight, Rocket,
 } from 'lucide-react';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 
 const STEPS = [
   { title: 'System Setup', icon: Settings, desc: 'Configure your property management system' },

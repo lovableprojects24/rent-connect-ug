@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Layers, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 
 type UnitType = Database['public']['Enums']['unit_type'];

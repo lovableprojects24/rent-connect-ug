@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialTab from '@/components/tenant-portal/FinancialTab';
 import MaintenanceTab from '@/components/tenant-portal/MaintenanceTab';
 import LeaseTab from '@/components/tenant-portal/LeaseTab';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
   AlertCircle, Wallet, Wrench, FileText, CheckCircle, Clock, CreditCard,

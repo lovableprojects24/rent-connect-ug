@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Download, Search, CreditCard, Pencil, Trash2 } from 'lucide-react';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import StatusBadge from '@/components/shared/StatusBadge';
 import RecordPaymentDialog from '@/components/forms/RecordPaymentDialog';
 import EditPaymentDialog from '@/components/forms/EditPaymentDialog';

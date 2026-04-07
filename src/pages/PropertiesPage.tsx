@@ -7,7 +7,7 @@ import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
 import { useProperties, useDeleteProperty } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
 import type { Tables } from '@/integrations/supabase/types';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 
 type Property = Tables<'properties'>;
 

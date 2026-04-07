@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { usePayments } from '@/hooks/usePayments';
 import { useLeases } from '@/hooks/useLeases';
 import { useTenantNames } from '@/hooks/useTenants';
-import { formatUGX } from '@/data/mock-data';
+import { formatUGX } from '@/lib/utils';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { motion } from 'framer-motion';
