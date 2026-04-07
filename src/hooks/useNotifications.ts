@@ -14,10 +14,11 @@ export function useNotifications() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  // Realtime subscription
+  const channelRef = useRef<string>(`notifications-rt-${Math.random().toString(36).slice(2)}`);
+
   useEffect(() => {
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(channelRef.current)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
