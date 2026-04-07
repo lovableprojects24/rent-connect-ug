@@ -5,7 +5,7 @@ import { useMaintenanceRequests } from '@/hooks/useMaintenance';
 import ReportMaintenanceDialog from '@/components/forms/ReportMaintenanceDialog';
 
 export default function MaintenancePage() {
-  const { data: requests = [], isLoading: loading } = useMaintenance();
+  const { data: requests = [], isLoading: loading } = useMaintenanceRequests();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -45,7 +45,9 @@ export default function MaintenancePage() {
           <h1 className="font-heading font-semibold text-2xl mb-2">Maintenance Requests</h1>
           <p className="text-muted-foreground">Track and manage maintenance issues</p>
         </div>
-        <ReportMaintenanceDialog onSuccess={() => {}} />
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm">
+          <Plus className="w-4 h-4" /> New Request
+        </button>
       </div>
 
       {/* Stats */}
