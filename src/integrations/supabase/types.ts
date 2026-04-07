@@ -460,6 +460,91 @@ export type Database = {
         }
         Relationships: []
       }
+      unit_transfers: {
+        Row: {
+          created_at: string
+          from_tenant_id: string
+          id: string
+          new_lease_id: string | null
+          old_deposit_amount: number
+          old_lease_id: string
+          property_id: string
+          reason: string | null
+          to_tenant_id: string
+          transferred_by: string
+          unit_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_tenant_id: string
+          id?: string
+          new_lease_id?: string | null
+          old_deposit_amount?: number
+          old_lease_id: string
+          property_id: string
+          reason?: string | null
+          to_tenant_id: string
+          transferred_by: string
+          unit_id: string
+        }
+        Update: {
+          created_at?: string
+          from_tenant_id?: string
+          id?: string
+          new_lease_id?: string | null
+          old_deposit_amount?: number
+          old_lease_id?: string
+          property_id?: string
+          reason?: string | null
+          to_tenant_id?: string
+          transferred_by?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_transfers_from_tenant_id_fkey"
+            columns: ["from_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_transfers_new_lease_id_fkey"
+            columns: ["new_lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_transfers_old_lease_id_fkey"
+            columns: ["old_lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_transfers_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_transfers_to_tenant_id_fkey"
+            columns: ["to_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_transfers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       units: {
         Row: {
           created_at: string

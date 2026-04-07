@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home, User } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home, User, ArrowRightLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import AddUnitDialog from '@/components/forms/AddUnitDialog';
 import BulkAddUnitsDialog from '@/components/forms/BulkAddUnitsDialog';
 import EditUnitDialog from '@/components/forms/EditUnitDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
+import TransferUnitDialog from '@/components/forms/TransferUnitDialog';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
@@ -16,37 +17,38 @@ import type { Tables } from '@/integrations/supabase/types';
 type Property = Tables<'properties'>;
 type Unit = Tables<'units'>;
 type TenantInfo = { id: string; full_name: string };
-type UnitTenantMap = Record<string, TenantInfo>;
+type LeaseInfo = { leaseId: string; deposit: number; tenant: TenantInfo };
+type UnitLeaseMap = Record<string, LeaseInfo>;
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [property, setProperty] = useState<Property | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
-  const [unitTenants, setUnitTenants] = useState<UnitTenantMap>({});
+  const [unitLeases, setUnitLeases] = useState<UnitLeaseMap>({});
   const [loading, setLoading] = useState(true);
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [transferUnit, setTransferUnit] = useState<Unit | null>(null);
 
   const fetchData = async () => {
     if (!id) return;
     const [propRes, unitsRes, leasesRes] = await Promise.all([
       supabase.from('properties').select('*').eq('id', id).single(),
       supabase.from('units').select('*').eq('property_id', id).order('name'),
-      supabase.from('leases').select('unit_id, tenants(id, full_name)').eq('property_id', id).eq('status', 'active'),
+      supabase.from('leases').select('id, unit_id, deposit, tenants(id, full_name)').eq('property_id', id).eq('status', 'active'),
     ]);
     if (propRes.data) setProperty(propRes.data);
     if (unitsRes.data) setUnits(unitsRes.data);
-    // Build unit -> tenant map
-    const map: UnitTenantMap = {};
+    const map: UnitLeaseMap = {};
     if (leasesRes.data) {
       for (const lease of leasesRes.data) {
         const t = lease.tenants as unknown as TenantInfo | null;
-        if (t) map[lease.unit_id] = t;
+        if (t) map[lease.unit_id] = { leaseId: lease.id, deposit: lease.deposit, tenant: t };
       }
     }
-    setUnitTenants(map);
+    setUnitLeases(map);
     setLoading(false);
   };
 
@@ -159,15 +161,20 @@ export default function PropertyDetailPage() {
                     <div>
                       <h3 className="font-medium">{unit.name}</h3>
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{unit.type} · {formatUGX(unit.rent_amount)}/mo</p>
-                      {unitTenants[unit.id] && (
-                        <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                          <User className="w-3 h-3" /> {unitTenants[unit.id].full_name}
+                      {unitLeases[unit.id] && (
+                        <Link to={`/tenants/${unitLeases[unit.id].tenant.id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                          <User className="w-3 h-3" /> {unitLeases[unit.id].tenant.full_name}
                         </Link>
                       )}
                     </div>
                     <StatusBadge status={unit.status} />
                   </div>
                   <div className="flex gap-1 mt-3">
+                    {unitLeases[unit.id] && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="Transfer unit" onClick={() => setTransferUnit(unit)}>
+                        <ArrowRightLeft className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditUnit(unit)}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
@@ -199,9 +206,9 @@ export default function PropertyDetailPage() {
                       <td className="px-4 py-3 text-sm capitalize">{unit.type}</td>
                       <td className="px-4 py-3 text-sm">{formatUGX(unit.rent_amount)}</td>
                       <td className="px-4 py-3 text-sm">
-                        {unitTenants[unit.id] ? (
-                          <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-primary hover:underline flex items-center gap-1">
-                            <User className="w-3.5 h-3.5" /> {unitTenants[unit.id].full_name}
+                        {unitLeases[unit.id] ? (
+                          <Link to={`/tenants/${unitLeases[unit.id].tenant.id}`} className="text-primary hover:underline flex items-center gap-1">
+                            <User className="w-3.5 h-3.5" /> {unitLeases[unit.id].tenant.full_name}
                           </Link>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -210,6 +217,11 @@ export default function PropertyDetailPage() {
                       <td className="px-4 py-3"><StatusBadge status={unit.status} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
+                          {unitLeases[unit.id] && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="Transfer unit" onClick={() => setTransferUnit(unit)}>
+                              <ArrowRightLeft className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditUnit(unit)}>
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
@@ -229,6 +241,19 @@ export default function PropertyDetailPage() {
 
       <EditUnitDialog unit={editUnit} open={!!editUnit} onOpenChange={(o) => !o && setEditUnit(null)} onSuccess={fetchData} />
       <DeleteConfirmDialog open={!!deleteUnit} onOpenChange={(o) => !o && setDeleteUnit(null)} onConfirm={handleDelete} loading={deleting} title="Delete Unit" description={`Are you sure you want to delete "${deleteUnit?.name}"? This cannot be undone.`} />
+      {transferUnit && unitLeases[transferUnit.id] && (
+        <TransferUnitDialog
+          open={!!transferUnit}
+          onOpenChange={(o) => !o && setTransferUnit(null)}
+          unitId={transferUnit.id}
+          unitName={transferUnit.name}
+          propertyId={property!.id}
+          currentTenant={unitLeases[transferUnit.id].tenant}
+          currentLeaseId={unitLeases[transferUnit.id].leaseId}
+          currentDeposit={unitLeases[transferUnit.id].deposit}
+          onSuccess={fetchData}
+        />
+      )}
     </div>
   );
 }
