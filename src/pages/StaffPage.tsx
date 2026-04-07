@@ -183,7 +183,6 @@ export default function StaffPage() {
                       <ResetPasswordButton targetUserId={member.user_id} targetName={member.staff_name || 'User'} size="sm" />
                       <button onClick={() => setDeleteStaff(member)} className="text-destructive hover:underline text-sm">Remove</button>
                     </td>
-                    </td>
                   </tr>
                 ))}
               </tbody>
