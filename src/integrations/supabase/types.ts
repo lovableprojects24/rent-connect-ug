@@ -546,12 +546,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_lease_tenant: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_property_owner: {
         Args: { _property_id: string; _user_id: string }
         Returns: boolean
       }
       is_property_staff: {
         Args: { _property_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_tenant_on_staff_property: {
+        Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
     }
