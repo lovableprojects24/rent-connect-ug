@@ -21,6 +21,7 @@ import TenantPortalPage from "@/pages/TenantPortalPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import InstallPage from "@/pages/InstallPage";
+import OnboardingPage from "@/pages/OnboardingPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/install" element={<InstallPage />} />
             <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
             <Route
               element={
                 <ProtectedRoute>
