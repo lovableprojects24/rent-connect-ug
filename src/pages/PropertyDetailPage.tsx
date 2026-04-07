@@ -37,19 +37,18 @@ export default function PropertyDetailPage() {
     const [propRes, unitsRes, leasesRes] = await Promise.all([
       supabase.from('properties').select('*').eq('id', id).single(),
       supabase.from('units').select('*').eq('property_id', id).order('name'),
-      supabase.from('leases').select('unit_id, tenants(id, full_name)').eq('property_id', id).eq('status', 'active'),
+      supabase.from('leases').select('id, unit_id, deposit, tenants(id, full_name)').eq('property_id', id).eq('status', 'active'),
     ]);
     if (propRes.data) setProperty(propRes.data);
     if (unitsRes.data) setUnits(unitsRes.data);
-    // Build unit -> tenant map
-    const map: UnitTenantMap = {};
+    const map: UnitLeaseMap = {};
     if (leasesRes.data) {
       for (const lease of leasesRes.data) {
         const t = lease.tenants as unknown as TenantInfo | null;
-        if (t) map[lease.unit_id] = t;
+        if (t) map[lease.unit_id] = { leaseId: lease.id, deposit: lease.deposit, tenant: t };
       }
     }
-    setUnitTenants(map);
+    setUnitLeases(map);
     setLoading(false);
   };
 
