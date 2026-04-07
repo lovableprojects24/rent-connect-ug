@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationsService } from '@/services/notifications';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 export function useNotifications() {
@@ -14,10 +14,11 @@ export function useNotifications() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  // Realtime subscription
+  const channelRef = useRef<string>(`notifications-rt-${Math.random().toString(36).slice(2)}`);
+
   useEffect(() => {
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(channelRef.current)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
