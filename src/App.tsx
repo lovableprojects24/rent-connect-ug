@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import AuthPage from "@/pages/AuthPage";
 import DashboardPage from "@/pages/DashboardPage";
+import ManagerDashboardPage from "@/pages/ManagerDashboardPage";
+import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import PropertiesPage from "@/pages/PropertiesPage";
 import TenantsPage from "@/pages/TenantsPage";
 import PaymentsPage from "@/pages/PaymentsPage";
