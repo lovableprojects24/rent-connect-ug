@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Users, Building2, Trash2, Shield } from 'lucide-react';
+import ResetPasswordButton from '@/components/shared/ResetPasswordButton';
 import { supabase } from '@/integrations/supabase/client';
 import AddStaffDialog from '@/components/forms/AddStaffDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
@@ -178,7 +179,8 @@ export default function StaffPage() {
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {new Date(member.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                      <ResetPasswordButton targetUserId={member.user_id} targetName={member.staff_name || 'User'} size="sm" />
                       <button onClick={() => setDeleteStaff(member)} className="text-destructive hover:underline text-sm">Remove</button>
                     </td>
                   </tr>
