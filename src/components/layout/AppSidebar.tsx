@@ -81,12 +81,14 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
     navigate('/auth');
   };
 
-  const visibleItems = isTenantOnly
-    ? tenantNavItems
-    : adminNavItems.filter(item => {
-        if (!item.roles) return true;
-        return item.roles.some(r => roles.includes(r));
-      });
+  const getNavItems = () => {
+    if (isTenantOnly) return tenantNavItems;
+    if (roles.includes('admin')) return adminNavItems;
+    if (roles.includes('finance') && !roles.includes('landlord') && !roles.includes('agent')) return financeNavItems;
+    return managerNavItems;
+  };
+
+  const visibleItems = getNavItems();
 
   return (
     <>
