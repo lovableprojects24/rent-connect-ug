@@ -8,8 +8,6 @@ import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import AuthPage from "@/pages/AuthPage";
 import DashboardPage from "@/pages/DashboardPage";
-import ManagerDashboardPage from "@/pages/ManagerDashboardPage";
-import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import PropertiesPage from "@/pages/PropertiesPage";
 import TenantsPage from "@/pages/TenantsPage";
 import PaymentsPage from "@/pages/PaymentsPage";
@@ -20,7 +18,6 @@ import TenantDetailPage from "@/pages/TenantDetailPage";
 import PropertyDetailPage from "@/pages/PropertyDetailPage";
 import StaffPage from "@/pages/StaffPage";
 import TenantPortalPage from "@/pages/TenantPortalPage";
-import FinanceDashboardPage from "@/pages/FinanceDashboardPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import InstallPage from "@/pages/InstallPage";
@@ -57,7 +54,6 @@ const App = () => (
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/staff" element={<StaffPage />} />
               <Route path="/portal" element={<TenantPortalPage />} />
-              <Route path="/finance" element={<FinanceDashboardPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />

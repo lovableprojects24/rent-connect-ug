@@ -81,21 +81,19 @@ export default function StaffPage() {
 
   const roleBadgeColor = (role: AppRole) => {
     switch (role) {
-      case 'agent': return 'bg-blue-50 text-blue-700';
-      case 'finance': return 'bg-purple-50 text-purple-700';
+      case 'manager': return 'bg-blue-50 text-blue-700';
       case 'admin': return 'bg-red-50 text-red-700';
+      case 'tenant': return 'bg-green-50 text-green-700';
       default: return 'bg-gray-50 text-gray-700';
     }
   };
 
   const roleLabel = (role: AppRole) => {
     switch (role) {
-      case 'agent': return 'Agent';
-      case 'finance': return 'Finance';
+      case 'manager': return 'Manager';
       case 'admin': return 'Admin';
-      case 'landlord': return 'Landlord';
       case 'tenant': return 'Tenant';
-      default: return role;
+      default: return role.charAt(0).toUpperCase() + role.slice(1);
     }
   };
 
@@ -145,7 +143,7 @@ export default function StaffPage() {
         <div className="bg-card rounded-xl border border-border p-12 text-center">
           <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h3 className="font-heading font-semibold mb-2">No Staff Assigned</h3>
-          <p className="text-muted-foreground">Assign agents or finance officers to manage your properties</p>
+          <p className="text-muted-foreground">Assign managers to oversee your properties</p>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
