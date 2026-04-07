@@ -170,6 +170,11 @@ export default function PropertyDetailPage() {
                     <StatusBadge status={unit.status} />
                   </div>
                   <div className="flex gap-1 mt-3">
+                    {unitLeases[unit.id] && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="Transfer unit" onClick={() => setTransferUnit(unit)}>
+                        <ArrowRightLeft className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditUnit(unit)}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
