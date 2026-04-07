@@ -175,6 +175,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -446,7 +482,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          _message: string
+          _related_entity_id?: string
+          _related_entity_type?: string
+          _title: string
+          _type?: Database["public"]["Enums"]["notification_type"]
+          _user_id: string
+        }
+        Returns: string
+      }
       find_user_by_email: { Args: { _email: string }; Returns: string }
+      generate_late_payment_alerts: { Args: never; Returns: number }
+      generate_lease_expiry_alerts: { Args: never; Returns: number }
+      generate_rent_reminders: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -464,6 +514,12 @@ export type Database = {
       lease_status: "active" | "inactive" | "pending" | "terminated"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "open" | "in_progress" | "resolved" | "closed"
+      notification_type:
+        | "rent_reminder"
+        | "late_payment"
+        | "maintenance"
+        | "general"
+        | "lease_expiry"
       payment_method:
         | "mtn_momo"
         | "airtel_money"
@@ -605,6 +661,13 @@ export const Constants = {
       lease_status: ["active", "inactive", "pending", "terminated"],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["open", "in_progress", "resolved", "closed"],
+      notification_type: [
+        "rent_reminder",
+        "late_payment",
+        "maintenance",
+        "general",
+        "lease_expiry",
+      ],
       payment_method: [
         "mtn_momo",
         "airtel_money",
