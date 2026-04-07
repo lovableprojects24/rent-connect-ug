@@ -48,6 +48,7 @@ const managerNavItems: NavItem[] = [
   { label: 'Tenants', icon: Users, path: '/tenants', roles: ['landlord', 'agent'] },
   { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['landlord', 'agent'] },
   { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['landlord', 'agent'] },
+  { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['landlord', 'agent'] },
   { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['landlord', 'agent'] },
 ];
 
