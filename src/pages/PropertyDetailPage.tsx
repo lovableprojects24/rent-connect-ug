@@ -241,6 +241,19 @@ export default function PropertyDetailPage() {
 
       <EditUnitDialog unit={editUnit} open={!!editUnit} onOpenChange={(o) => !o && setEditUnit(null)} onSuccess={fetchData} />
       <DeleteConfirmDialog open={!!deleteUnit} onOpenChange={(o) => !o && setDeleteUnit(null)} onConfirm={handleDelete} loading={deleting} title="Delete Unit" description={`Are you sure you want to delete "${deleteUnit?.name}"? This cannot be undone.`} />
+      {transferUnit && unitLeases[transferUnit.id] && (
+        <TransferUnitDialog
+          open={!!transferUnit}
+          onOpenChange={(o) => !o && setTransferUnit(null)}
+          unitId={transferUnit.id}
+          unitName={transferUnit.name}
+          propertyId={property!.id}
+          currentTenant={unitLeases[transferUnit.id].tenant}
+          currentLeaseId={unitLeases[transferUnit.id].leaseId}
+          currentDeposit={unitLeases[transferUnit.id].deposit}
+          onSuccess={fetchData}
+        />
+      )}
     </div>
   );
 }
