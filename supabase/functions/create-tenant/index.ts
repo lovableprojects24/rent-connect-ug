@@ -63,16 +63,16 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", callerId);
 
     const roles = (callerRoles || []).map((r: any) => r.role);
-    if (!roles.includes("admin") && !roles.includes("landlord")) {
+    if (!roles.includes("admin") && !roles.includes("landlord") && !roles.includes("manager")) {
       return new Response(
-        JSON.stringify({ error: "Only admins and landlords can create tenant accounts" }),
+        JSON.stringify({ error: "Only admins and managers can create accounts" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Parse request body
     const body = await req.json();
-    const { full_name, email, phone, emergency_contact } = body;
+    const { full_name, email, phone, emergency_contact, is_manager } = body;
 
     if (!full_name || !email || !phone) {
       return new Response(
@@ -102,31 +102,40 @@ Deno.serve(async (req: Request) => {
 
     const newUserId = authData.user.id;
 
-    // Assign tenant role
+    const assignedRole = is_manager ? "manager" : "tenant";
+
+    // Assign role
     await adminClient.from("user_roles").insert({
       user_id: newUserId,
-      role: "tenant",
+      role: assignedRole,
     });
 
     // Set must_change_password flag
     await adminClient
       .from("profiles")
-      .update({ must_change_password: true, phone })
+      .update({ must_change_password: true, phone, full_name: full_name.trim() })
       .eq("user_id", newUserId);
 
-    // Create tenant record linked to the auth user
-    const { data: tenantData, error: tenantError } = await adminClient
-      .from("tenants")
-      .insert({
-        full_name: full_name.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-        emergency_contact: emergency_contact?.trim() || null,
-        created_by: callerId,
-        user_id: newUserId,
-      })
-      .select("id")
-      .single();
+    let tenantData: any = null;
+    let tenantError: any = null;
+
+    // Only create tenant record if not a manager
+    if (!is_manager) {
+      const result = await adminClient
+        .from("tenants")
+        .insert({
+          full_name: full_name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          emergency_contact: emergency_contact?.trim() || null,
+          created_by: callerId,
+          user_id: newUserId,
+        })
+        .select("id")
+        .single();
+      tenantData = result.data;
+      tenantError = result.error;
+    }
 
     if (tenantError) {
       return new Response(
@@ -137,10 +146,11 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({
-        tenant_id: tenantData.id,
+        tenant_id: tenantData?.id || null,
         user_id: newUserId,
         email,
         temporary_password: tempPassword,
+        role: assignedRole,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
