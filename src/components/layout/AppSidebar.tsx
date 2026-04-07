@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   LayoutDashboard,
   Building2,
@@ -75,6 +76,7 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
+  const { unreadCount } = useNotifications();
   const isTenantOnly = roles.includes('tenant') && roles.length === 1;
 
   const handleLogout = async () => {
@@ -136,6 +138,11 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
+                {item.label === 'Notifications' && unreadCount > 0 && (
+                  <span className="ml-auto bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
