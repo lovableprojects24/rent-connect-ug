@@ -206,9 +206,9 @@ export default function PropertyDetailPage() {
                       <td className="px-4 py-3 text-sm capitalize">{unit.type}</td>
                       <td className="px-4 py-3 text-sm">{formatUGX(unit.rent_amount)}</td>
                       <td className="px-4 py-3 text-sm">
-                        {unitTenants[unit.id] ? (
-                          <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-primary hover:underline flex items-center gap-1">
-                            <User className="w-3.5 h-3.5" /> {unitTenants[unit.id].full_name}
+                        {unitLeases[unit.id] ? (
+                          <Link to={`/tenants/${unitLeases[unit.id].tenant.id}`} className="text-primary hover:underline flex items-center gap-1">
+                            <User className="w-3.5 h-3.5" /> {unitLeases[unit.id].tenant.full_name}
                           </Link>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -217,6 +217,11 @@ export default function PropertyDetailPage() {
                       <td className="px-4 py-3"><StatusBadge status={unit.status} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
+                          {unitLeases[unit.id] && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="Transfer unit" onClick={() => setTransferUnit(unit)}>
+                              <ArrowRightLeft className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditUnit(unit)}>
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
