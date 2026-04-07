@@ -21,6 +21,7 @@ import TenantPortalPage from "@/pages/TenantPortalPage";
 import FinanceDashboardPage from "@/pages/FinanceDashboardPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChangePasswordPage from "@/pages/ChangePasswordPage";
+import InstallPage from "@/pages/InstallPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
