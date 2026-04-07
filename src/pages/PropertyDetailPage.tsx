@@ -161,9 +161,9 @@ export default function PropertyDetailPage() {
                     <div>
                       <h3 className="font-medium">{unit.name}</h3>
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{unit.type} · {formatUGX(unit.rent_amount)}/mo</p>
-                      {unitTenants[unit.id] && (
-                        <Link to={`/tenants/${unitTenants[unit.id].id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                          <User className="w-3 h-3" /> {unitTenants[unit.id].full_name}
+                      {unitLeases[unit.id] && (
+                        <Link to={`/tenants/${unitLeases[unit.id].tenant.id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                          <User className="w-3 h-3" /> {unitLeases[unit.id].tenant.full_name}
                         </Link>
                       )}
                     </div>
