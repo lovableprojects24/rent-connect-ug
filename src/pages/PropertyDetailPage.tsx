@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home, User } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Plus, Pencil, Trash2, Home, User, ArrowRightLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUGX } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
