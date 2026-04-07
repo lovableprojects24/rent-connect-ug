@@ -28,18 +28,38 @@ interface NavItem {
   roles?: AppRole[];
 }
 
+// Admin: full system control
 const adminNavItems: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['admin', 'landlord', 'agent', 'finance'] },
-  { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin', 'landlord', 'agent'] },
-  { label: 'Tenants', icon: Users, path: '/tenants', roles: ['admin', 'landlord', 'agent'] },
-  { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'landlord', 'agent', 'finance'] },
-  { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['admin', 'landlord', 'agent'] },
-  { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['admin', 'landlord', 'finance'] },
-  { label: 'Finance', icon: PieChart, path: '/finance', roles: ['admin', 'landlord', 'finance'] },
-  { label: 'Staff', icon: Shield, path: '/staff', roles: ['admin', 'landlord'] },
-  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['admin', 'landlord', 'agent', 'finance'] },
+  { label: 'Control Center', icon: LayoutDashboard, path: '/', roles: ['admin'] },
+  { label: 'Properties', icon: Building2, path: '/properties', roles: ['admin'] },
+  { label: 'Tenants', icon: Users, path: '/tenants', roles: ['admin'] },
+  { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin'] },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['admin'] },
+  { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['admin'] },
+  { label: 'Finance', icon: PieChart, path: '/finance', roles: ['admin'] },
+  { label: 'Staff', icon: Shield, path: '/staff', roles: ['admin'] },
+  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['admin'] },
 ];
 
+// Manager (landlord/agent): daily property ops
+const managerNavItems: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['landlord', 'agent'] },
+  { label: 'Properties', icon: Building2, path: '/properties', roles: ['landlord', 'agent'] },
+  { label: 'Tenants', icon: Users, path: '/tenants', roles: ['landlord', 'agent'] },
+  { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['landlord', 'agent'] },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance', roles: ['landlord', 'agent'] },
+  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['landlord', 'agent'] },
+];
+
+// Finance: money focused
+const financeNavItems: NavItem[] = [
+  { label: 'Finance', icon: PieChart, path: '/finance', roles: ['finance'] },
+  { label: 'Payments', icon: CreditCard, path: '/payments', roles: ['finance'] },
+  { label: 'Reports', icon: BarChart3, path: '/reports', roles: ['finance'] },
+  { label: 'Notifications', icon: Bell, path: '/notifications', roles: ['finance'] },
+];
+
+// Tenant: self-service
 const tenantNavItems: NavItem[] = [
   { label: 'Financial', icon: Wallet, path: '/portal?tab=financial' },
   { label: 'Maintenance', icon: Wrench, path: '/portal?tab=maintenance' },
