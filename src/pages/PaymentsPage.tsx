@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Download, CreditCard, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Download, Search, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { formatUGX } from '@/data/mock-data';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
 import RecordPaymentDialog from '@/components/forms/RecordPaymentDialog';
 import EditPaymentDialog from '@/components/forms/EditPaymentDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
@@ -16,15 +14,13 @@ type PaymentMethod = Database['public']['Enums']['payment_method'];
 const methodLabels: Record<PaymentMethod, string> = {
   mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank Transfer', pesapal: 'Pesapal',
 };
-const methodIcons: Record<PaymentMethod, string> = {
-  mtn_momo: '🟡', airtel_money: '🔴', cash: '💵', bank_transfer: '🏦', pesapal: '🌐',
-};
 
 export default function PaymentsPage() {
   const { data: payments = [], isLoading: loading } = usePayments();
   const deletePaymentMutation = useDeletePayment();
   const [editPayment, setEditPayment] = useState<Payment | null>(null);
   const [deletePayment, setDeletePayment] = useState<Payment | null>(null);
+  const [search, setSearch] = useState('');
 
   const handleDelete = async () => {
     if (!deletePayment) return;
@@ -33,129 +29,108 @@ export default function PaymentsPage() {
   };
 
   const totalCollected = payments.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0);
+  const totalPending = payments.filter(p => p.status === 'pending').reduce((a, p) => a + p.amount, 0);
+  const totalFailed = payments.filter(p => p.status === 'failed').reduce((a, p) => a + p.amount, 0);
+  const collectionRate = payments.length > 0 ? Math.round((payments.filter(p => p.status === 'completed').length / payments.length) * 100) : 0;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-heading font-bold">Payments</h1>
-          <p className="text-muted-foreground text-sm mt-1">Total collected: {formatUGX(totalCollected)}</p>
+          <h1 className="font-heading font-semibold text-2xl mb-2">Payments</h1>
+          <p className="text-muted-foreground">Track and manage all rent payments</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
+        <div className="flex flex-wrap gap-2">
           <RecordPaymentDialog onSuccess={() => {}} />
+          <button className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors flex items-center gap-2 text-sm font-medium">
+            <Download className="w-4 h-4" /> Export
+          </button>
         </div>
       </div>
 
-      {/* Mobile Money Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 text-left">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ background: 'hsl(48 96% 90%)' }}>🟡</div>
-          <div>
-            <p className="text-sm font-semibold">MTN MoMo</p>
-            <p className="text-xs text-muted-foreground">Record payment</p>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 text-left">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ background: 'hsl(0 72% 92%)' }}>🔴</div>
-          <div>
-            <p className="text-sm font-semibold">Airtel Money</p>
-            <p className="text-xs text-muted-foreground">Record payment</p>
-          </div>
-        </motion.div>
+      {/* Search */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search payments..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
       </div>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="bg-card rounded-xl p-6 border border-border">
+          <p className="text-muted-foreground text-sm mb-2">Total Collected</p>
+          <p className="text-2xl font-heading font-semibold text-green-600">{formatUGX(totalCollected)}</p>
+        </div>
+        <div className="bg-card rounded-xl p-6 border border-border">
+          <p className="text-muted-foreground text-sm mb-2">Pending</p>
+          <p className="text-2xl font-heading font-semibold text-yellow-600">{formatUGX(totalPending)}</p>
+        </div>
+        <div className="bg-card rounded-xl p-6 border border-border">
+          <p className="text-muted-foreground text-sm mb-2">Failed</p>
+          <p className="text-2xl font-heading font-semibold text-red-600">{formatUGX(totalFailed)}</p>
+        </div>
+        <div className="bg-card rounded-xl p-6 border border-border">
+          <p className="text-muted-foreground text-sm mb-2">Collection Rate</p>
+          <p className="text-2xl font-heading font-semibold text-blue-600">{collectionRate}%</p>
+        </div>
+      </div>
+
+      {/* Payments Table */}
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
       ) : payments.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">No payments yet</p>
-          <p className="text-sm mt-1">Record your first payment</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <CreditCard className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="font-heading font-semibold mb-2">No Payments Yet</h3>
+          <p className="text-muted-foreground">Record your first payment to get started</p>
         </div>
       ) : (
-        <>
-          {/* Mobile cards */}
-          <div className="space-y-3 lg:hidden">
-            {payments.map((payment, i) => (
-              <motion.div key={payment.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="bg-card rounded-xl border border-border p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{methodIcons[payment.method]}</span>
-                    <div>
-                      <p className="text-sm font-medium">{methodLabels[payment.method]}</p>
-                      <p className="text-xs text-muted-foreground">{payment.type}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <StatusBadge status={payment.status} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditPayment(payment)}>
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePayment(payment)}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-3 text-sm">
-                  <span className="text-muted-foreground">{payment.payment_date}</span>
-                  <span className="font-semibold">{formatUGX(payment.amount)}</span>
-                </div>
-                {payment.reference && <p className="text-xs text-muted-foreground mt-1">Ref: {payment.reference}</p>}
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Desktop table */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="hidden lg:block bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Amount</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Method</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Type</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Date</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Reference</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Amount</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Date</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Method</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Reference</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {payments.map((payment) => (
-                  <tr key={payment.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm font-semibold">{formatUGX(payment.amount)}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className="flex items-center gap-1.5">{methodIcons[payment.method]} {methodLabels[payment.method]}</span>
-                    </td>
-                    <td className="px-4 py-3 text-sm capitalize">{payment.type}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{payment.payment_date}</td>
-                    <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{payment.reference || '—'}</td>
-                    <td className="px-4 py-3"><StatusBadge status={payment.status} /></td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditPayment(payment)}>
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeletePayment(payment)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                  <tr key={payment.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 text-sm font-semibold">{formatUGX(payment.amount)}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{payment.payment_date}</td>
+                    <td className="px-6 py-4 text-sm">{methodLabels[payment.method]}</td>
+                    <td className="px-6 py-4 text-xs font-mono text-muted-foreground">{payment.reference || '—'}</td>
+                    <td className="px-6 py-4"><StatusBadge status={payment.status} /></td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button onClick={() => setEditPayment(payment)} className="text-primary hover:underline text-sm">Edit</button>
+                        <button onClick={() => setDeletePayment(payment)} className="text-destructive hover:underline text-sm">Delete</button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </motion.div>
-        </>
+          </div>
+        </div>
       )}
 
       <EditPaymentDialog payment={editPayment} open={!!editPayment} onOpenChange={(o) => !o && setEditPayment(null)} onSuccess={() => {}} />
-      <DeleteConfirmDialog open={!!deletePayment} onOpenChange={(o) => !o && setDeletePayment(null)} onConfirm={handleDelete} loading={deletePaymentMutation.isPending} title="Delete Payment" description={`Are you sure you want to delete this ${formatUGX(deletePayment?.amount || 0)} payment? This cannot be undone.`} />
+      <DeleteConfirmDialog open={!!deletePayment} onOpenChange={(o) => !o && setDeletePayment(null)} onConfirm={handleDelete} loading={deletePaymentMutation.isPending} title="Delete Payment" description={`Are you sure you want to delete this ${formatUGX(deletePayment?.amount || 0)} payment?`} />
     </div>
   );
 }

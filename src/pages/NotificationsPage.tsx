@@ -1,25 +1,22 @@
-import { Bell, CreditCard, AlertTriangle, Check, Trash2, RefreshCw, Clock, FileWarning, Wrench } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Bell, DollarSign, Wrench, Users, CheckCircle, Check, Trash2, RefreshCw, Clock, FileWarning } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 
 const iconMap: Record<string, React.ReactNode> = {
-  rent_reminder: <CreditCard className="w-4 h-4" />,
-  late_payment: <AlertTriangle className="w-4 h-4" />,
-  maintenance: <Wrench className="w-4 h-4" />,
-  lease_expiry: <FileWarning className="w-4 h-4" />,
-  general: <Bell className="w-4 h-4" />,
+  rent_reminder: <DollarSign className="w-5 h-5" />,
+  late_payment: <DollarSign className="w-5 h-5" />,
+  maintenance: <Wrench className="w-5 h-5" />,
+  lease_expiry: <FileWarning className="w-5 h-5" />,
+  general: <Bell className="w-5 h-5" />,
 };
 
 const colorMap: Record<string, string> = {
-  rent_reminder: 'bg-primary/10 text-primary',
-  late_payment: 'bg-destructive/10 text-destructive',
-  maintenance: 'bg-accent/10 text-accent-foreground',
-  lease_expiry: 'bg-warning/10 text-warning',
-  general: 'bg-muted text-muted-foreground',
+  rent_reminder: 'bg-green-100 text-green-600',
+  late_payment: 'bg-red-100 text-red-600',
+  maintenance: 'bg-orange-100 text-orange-600',
+  lease_expiry: 'bg-blue-100 text-blue-600',
+  general: 'bg-gray-100 text-gray-600',
 };
 
 export default function NotificationsPage() {
@@ -29,96 +26,99 @@ export default function NotificationsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-48" />
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
+      <div className="flex justify-center py-12">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-heading font-bold">Notifications</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
-          </p>
+          <h1 className="font-heading font-semibold text-2xl mb-2">Notifications</h1>
+          <p className="text-muted-foreground">Stay updated with important alerts</p>
         </div>
         <div className="flex gap-2">
           {isManager && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => generateReminders.mutate()}
               disabled={generateReminders.isPending}
+              className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors flex items-center gap-2 text-sm font-medium"
             >
-              <RefreshCw className={`w-4 h-4 mr-1 ${generateReminders.isPending ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${generateReminders.isPending ? 'animate-spin' : ''}`} />
               Generate Alerts
-            </Button>
+            </button>
           )}
           {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => markAllAsRead.mutate()}
               disabled={markAllAsRead.isPending}
+              className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors flex items-center gap-2 text-sm font-medium"
             >
-              <Check className="w-4 h-4 mr-1" />
-              Mark all read
-            </Button>
+              <CheckCircle className="w-4 h-4" />
+              Mark All as Read
+            </button>
           )}
         </div>
       </div>
 
       {notifications.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">No notifications yet</p>
-          <p className="text-sm mt-1">You'll see rent reminders, payment alerts, and maintenance updates here.</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <Bell className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="font-heading font-semibold mb-2">No Notifications</h3>
+          <p className="text-muted-foreground">You're all caught up! Check back later for updates.</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {notifications.map((n, i) => (
-            <motion.div
+        <div className="bg-card rounded-xl border border-border shadow-sm divide-y divide-border">
+          {notifications.map((n) => (
+            <div
               key={n.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className={`bg-card rounded-xl border border-border p-4 flex items-start gap-3 ${!n.is_read ? 'border-l-4 border-l-primary' : ''}`}
+              className={`p-6 hover:bg-muted/30 transition-colors ${!n.is_read ? 'bg-blue-50/50' : ''}`}
             >
-              <div className={`p-2 rounded-lg shrink-0 ${colorMap[n.type] || colorMap.general}`}>
-                {iconMap[n.type] || iconMap.general}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between">
-                  <p className={`text-sm ${!n.is_read ? 'font-semibold' : 'font-medium'}`}>{n.title}</p>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-2 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                  </span>
+              <div className="flex items-start gap-4">
+                <div className={`${colorMap[n.type] || colorMap.general} p-3 rounded-lg flex-shrink-0`}>
+                  {iconMap[n.type] || iconMap.general}
                 </div>
-                <p className="text-sm text-muted-foreground mt-0.5">{n.message}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-4 mb-1">
+                    <h3 className={`font-medium text-sm ${!n.is_read ? 'text-primary font-semibold' : ''}`}>
+                      {n.title}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {!n.is_read && (
+                        <span className="w-2 h-2 bg-primary rounded-full" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-2">{n.message}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                    </p>
+                    <div className="flex gap-1">
+                      {!n.is_read && (
+                        <button
+                          onClick={() => markAsRead.mutate(n.id)}
+                          className="p-1.5 rounded hover:bg-muted text-muted-foreground"
+                          title="Mark as read"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteNotification.mutate(n.id)}
+                        className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-1 shrink-0">
-                {!n.is_read && (
-                  <button
-                    onClick={() => markAsRead.mutate(n.id)}
-                    className="p-1.5 rounded hover:bg-muted"
-                    title="Mark as read"
-                  >
-                    <Check className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                )}
-                <button
-                  onClick={() => deleteNotification.mutate(n.id)}
-                  className="p-1.5 rounded hover:bg-destructive/10"
-                  title="Delete"
-                >
-                  <Trash2 className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

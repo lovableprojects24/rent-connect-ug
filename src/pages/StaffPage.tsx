@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Users, Building2, Trash2, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import AddStaffDialog from '@/components/forms/AddStaffDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
 import { toast } from 'sonner';
@@ -40,7 +37,6 @@ export default function StaffPage() {
     if (propertiesRes.data) setProperties(propertiesRes.data);
 
     if (staffRes.data) {
-      // For each staff member, look up their profile
       const userIds = [...new Set(staffRes.data.map((s: any) => s.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
@@ -85,10 +81,10 @@ export default function StaffPage() {
 
   const roleBadgeColor = (role: AppRole) => {
     switch (role) {
-      case 'agent': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'finance': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-      case 'admin': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
-      default: return 'bg-muted text-muted-foreground';
+      case 'agent': return 'bg-blue-50 text-blue-700';
+      case 'finance': return 'bg-purple-50 text-purple-700';
+      case 'admin': return 'bg-red-50 text-red-700';
+      default: return 'bg-gray-50 text-gray-700';
     }
   };
 
@@ -105,14 +101,40 @@ export default function StaffPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-heading font-bold">Staff Management</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {staff.length} staff member{staff.length !== 1 ? 's' : ''} assigned across your properties
-          </p>
+          <h1 className="font-heading font-semibold text-2xl mb-2">Property Managers</h1>
+          <p className="text-muted-foreground">Manage your property managers and their assignments</p>
         </div>
         <AddStaffDialog properties={properties} onSuccess={fetchData} />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-muted-foreground text-sm">Total Managers</span>
+            <Users className="w-5 h-5 text-primary" />
+          </div>
+          <p className="text-3xl font-heading font-semibold">{staff.length}</p>
+          <p className="text-sm text-green-600 mt-1">All active</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-muted-foreground text-sm">Total Properties</span>
+            <Building2 className="w-5 h-5 text-green-600" />
+          </div>
+          <p className="text-3xl font-heading font-semibold">{properties.length}</p>
+          <p className="text-sm text-muted-foreground mt-1">Under management</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-muted-foreground text-sm">Unique Staff</span>
+            <Shield className="w-5 h-5 text-blue-600" />
+          </div>
+          <p className="text-3xl font-heading font-semibold">{new Set(staff.map(s => s.user_id)).size}</p>
+          <p className="text-sm text-muted-foreground mt-1">Being managed</p>
+        </div>
       </div>
 
       {loading ? (
@@ -120,77 +142,53 @@ export default function StaffPage() {
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
       ) : staff.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <Shield className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">No staff assigned yet</p>
-          <p className="text-sm mt-1">Assign agents or finance officers to manage your properties</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="font-heading font-semibold mb-2">No Staff Assigned</h3>
+          <p className="text-muted-foreground">Assign agents or finance officers to manage your properties</p>
         </div>
       ) : (
-        <>
-          {/* Mobile cards */}
-          <div className="space-y-3 lg:hidden">
-            {staff.map((member, i) => (
-              <motion.div
-                key={member.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-card rounded-xl border border-border p-4 space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium">{member.staff_name || 'Unknown User'}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                      <Building2 className="w-3 h-3" /> {member.property_name}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${roleBadgeColor(member.role)}`}>
-                      {roleLabel(member.role)}
-                    </span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteStaff(member)}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Desktop table */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="hidden lg:block bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Staff Member</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Property</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Role</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Assigned</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Actions</th>
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Manager</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Property</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Role</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Joined</th>
+                  <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {staff.map((member) => (
                   <tr key={member.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium">{member.staff_name || 'Unknown User'}</td>
-                    <td className="px-4 py-3 text-sm">{member.property_name}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleBadgeColor(member.role)}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 text-primary w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm">
+                          {(member.staff_name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <p className="font-medium text-sm">{member.staff_name || 'Unknown User'}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">{member.property_name}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${roleBadgeColor(member.role)}`}>
                         {roleLabel(member.role)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{new Date(member.created_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteStaff(member)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {new Date(member.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => setDeleteStaff(member)} className="text-destructive hover:underline text-sm">Remove</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </motion.div>
-        </>
+          </div>
+        </div>
       )}
 
       <DeleteConfirmDialog
