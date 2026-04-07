@@ -1,48 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, MapPin, Pencil, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { formatUGX } from '@/data/mock-data';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import AddPropertyDialog from '@/components/forms/AddPropertyDialog';
 import EditPropertyDialog from '@/components/forms/EditPropertyDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
-import { toast } from 'sonner';
+import { useProperties, useDeleteProperty } from '@/hooks/useProperties';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Property = Tables<'properties'>;
 
 export default function PropertiesPage() {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: properties = [], isLoading: loading } = useProperties();
+  const deletePropertyMutation = useDeleteProperty();
   const [editProperty, setEditProperty] = useState<Property | null>(null);
   const [deleteProperty, setDeleteProperty] = useState<Property | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const fetchProperties = async () => {
-    const { data } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
-    if (data) setProperties(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchProperties(); }, []);
 
   const handleDelete = async () => {
     if (!deleteProperty) return;
-    setDeleting(true);
-    try {
-      const { error } = await supabase.from('properties').delete().eq('id', deleteProperty.id);
-      if (error) throw error;
-      toast.success('Property deleted');
-      setDeleteProperty(null);
-      fetchProperties();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete property');
-    } finally {
-      setDeleting(false);
-    }
+    await deletePropertyMutation.mutateAsync(deleteProperty.id);
+    setDeleteProperty(null);
   };
 
   return (
@@ -52,7 +31,7 @@ export default function PropertiesPage() {
           <h1 className="text-2xl font-heading font-bold">Properties</h1>
           <p className="text-muted-foreground text-sm mt-1">{properties.length} properties in your portfolio</p>
         </div>
-        <AddPropertyDialog onSuccess={fetchProperties} />
+        <AddPropertyDialog onSuccess={() => {}} />
       </div>
 
       {loading ? (
@@ -103,8 +82,8 @@ export default function PropertiesPage() {
         </div>
       )}
 
-      <EditPropertyDialog property={editProperty} open={!!editProperty} onOpenChange={(o) => !o && setEditProperty(null)} onSuccess={fetchProperties} />
-      <DeleteConfirmDialog open={!!deleteProperty} onOpenChange={(o) => !o && setDeleteProperty(null)} onConfirm={handleDelete} loading={deleting} title="Delete Property" description={`Are you sure you want to delete "${deleteProperty?.name}"? This cannot be undone.`} />
+      <EditPropertyDialog property={editProperty} open={!!editProperty} onOpenChange={(o) => !o && setEditProperty(null)} onSuccess={() => {}} />
+      <DeleteConfirmDialog open={!!deleteProperty} onOpenChange={(o) => !o && setDeleteProperty(null)} onConfirm={handleDelete} loading={deletePropertyMutation.isPending} title="Delete Property" description={`Are you sure you want to delete "${deleteProperty?.name}"? This cannot be undone.`} />
     </div>
   );
 }

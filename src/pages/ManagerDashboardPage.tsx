@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, Users, CreditCard, Wrench, AlertTriangle, Plus, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useDashboardData } from '@/hooks/useDashboard';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { formatUGX } from '@/data/mock-data';
@@ -12,77 +12,46 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 export default function ManagerDashboardPage() {
   const { profile } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    propertyCount: 0,
-    totalUnits: 0,
-    occupiedUnits: 0,
-    vacantUnits: 0,
-    activeTenants: 0,
-    totalCollected: 0,
-    totalPending: 0,
-    openMaintenance: 0,
-  });
-  const [recentPayments, setRecentPayments] = useState<any[]>([]);
-  const [openRequests, setOpenRequests] = useState<any[]>([]);
-  const [occupancyData, setOccupancyData] = useState<any[]>([]);
+  const { data, isLoading: loading } = useDashboardData();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const computed = useMemo(() => {
+    if (!data) return null;
+    const { properties, units, tenants, payments, maintenance } = data;
 
-  const fetchData = async () => {
-    const [
-      { data: properties },
-      { data: units },
-      { data: tenants },
-      { data: payments },
-      { data: maintenance },
-    ] = await Promise.all([
-      supabase.from('properties').select('*'),
-      supabase.from('units').select('*'),
-      supabase.from('tenants').select('*'),
-      supabase.from('payments').select('*').order('payment_date', { ascending: false }),
-      supabase.from('maintenance_requests').select('*, properties(name), units(name)').order('created_at', { ascending: false }),
-    ]);
+    const totalUnits = units.length;
+    const occupiedUnits = units.filter(u => u.status === 'occupied').length;
+    const vacantUnits = units.filter(u => u.status === 'vacant').length;
+    const totalCollected = payments.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0);
+    const totalPending = payments.filter(p => p.status === 'pending').reduce((a, p) => a + p.amount, 0);
+    const openMaintenance = maintenance.filter(m => m.status === 'open' || m.status === 'in_progress').length;
 
-    const propertyCount = properties?.length || 0;
-    const totalUnits = units?.length || 0;
-    const occupiedUnits = units?.filter(u => u.status === 'occupied').length || 0;
-    const vacantUnits = units?.filter(u => u.status === 'vacant').length || 0;
-    const activeTenants = tenants?.length || 0;
-    const totalCollected = payments?.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0) || 0;
-    const totalPending = payments?.filter(p => p.status === 'pending').reduce((a, p) => a + p.amount, 0) || 0;
-    const openMaintenance = maintenance?.filter(m => m.status === 'open' || m.status === 'in_progress').length || 0;
-
-    setStats({ propertyCount, totalUnits, occupiedUnits, vacantUnits, activeTenants, totalCollected, totalPending, openMaintenance });
-
-    // Occupancy chart
-    setOccupancyData([
+    const occupancyData = [
       { name: 'Occupied', value: occupiedUnits, color: 'hsl(var(--primary))' },
       { name: 'Vacant', value: vacantUnits, color: 'hsl(var(--destructive))' },
       { name: 'Reserved', value: totalUnits - occupiedUnits - vacantUnits, color: 'hsl(var(--muted-foreground))' },
-    ].filter(d => d.value > 0));
+    ].filter(d => d.value > 0);
 
-    // Recent payments
-    const recentPays = (payments || []).slice(0, 6).map(p => {
-      const tenant = tenants?.find(t => t.id === p.tenant_id);
-      const labels: Record<string, string> = { mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank', pesapal: 'Pesapal' };
+    const labels: Record<string, string> = { mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank', pesapal: 'Pesapal' };
+    const recentPayments = payments.slice(0, 6).map(p => {
+      const tenant = tenants.find(t => t.id === p.tenant_id);
       return { ...p, tenantName: tenant?.full_name || 'Unknown', methodLabel: labels[p.method] || p.method };
     });
-    setRecentPayments(recentPays);
 
-    // Open maintenance
-    setOpenRequests((maintenance || []).filter(m => m.status === 'open' || m.status === 'in_progress').slice(0, 5).map(m => ({
+    const openRequests = maintenance.filter(m => m.status === 'open' || m.status === 'in_progress').slice(0, 5).map(m => ({
       ...m,
       propertyName: (m as any).properties?.name || 'Unknown',
       unitName: (m as any).units?.name || '-',
-    })));
+    }));
 
-    setLoading(false);
-  };
+    return {
+      stats: { propertyCount: properties.length, totalUnits, occupiedUnits, vacantUnits, activeTenants: tenants.length, totalCollected, totalPending, openMaintenance },
+      occupancyData,
+      recentPayments,
+      openRequests,
+    };
+  }, [data]);
 
-  if (loading) {
+  if (loading || !computed) {
     return (
       <div className="flex justify-center py-12">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -90,6 +59,7 @@ export default function ManagerDashboardPage() {
     );
   }
 
+  const { stats, occupancyData, recentPayments, openRequests } = computed;
   const occupancyRate = stats.totalUnits > 0 ? Math.round((stats.occupiedUnits / stats.totalUnits) * 100) : 0;
 
   return (
@@ -113,7 +83,6 @@ export default function ManagerDashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Properties" value={stats.propertyCount.toString()} subtitle={`${occupancyRate}% occupancy`} icon={Building2} variant="primary" delay={0} />
         <StatCard title="Active Tenants" value={stats.activeTenants.toString()} subtitle={`${stats.vacantUnits} vacant units`} icon={Users} variant="info" delay={0.1} />
@@ -121,9 +90,7 @@ export default function ManagerDashboardPage() {
         <StatCard title="Open Issues" value={stats.openMaintenance.toString()} subtitle={formatUGX(stats.totalPending) + ' pending'} icon={AlertTriangle} variant="warning" delay={0.3} />
       </div>
 
-      {/* Occupancy + Recent Payments */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Occupancy Donut */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-card rounded-xl border border-border p-5">
           <h3 className="font-heading font-semibold mb-3">Unit Occupancy</h3>
           <div className="flex flex-col items-center">
@@ -150,7 +117,6 @@ export default function ManagerDashboardPage() {
           </div>
         </motion.div>
 
-        {/* Recent Payments */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-2 bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold">Recent Payments</h3>
@@ -179,7 +145,6 @@ export default function ManagerDashboardPage() {
         </motion.div>
       </div>
 
-      {/* Open Maintenance */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-card rounded-xl border border-border p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-heading font-semibold flex items-center gap-2">

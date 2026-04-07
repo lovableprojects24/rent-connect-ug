@@ -1,39 +1,19 @@
-import { useEffect, useState, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useMemo } from 'react';
+import { usePayments } from '@/hooks/usePayments';
+import { useLeases } from '@/hooks/useLeases';
+import { useTenantNames } from '@/hooks/useTenants';
 import { formatUGX } from '@/data/mock-data';
 import StatCard from '@/components/shared/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, Legend,
+  PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock, XCircle,
+  CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock,
 } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
-
-interface PaymentRow {
-  id: string;
-  amount: number;
-  status: string;
-  method: string;
-  payment_date: string;
-  type: string;
-  tenant_id: string | null;
-  property_id: string | null;
-  reference: string | null;
-}
-
-interface LeaseRow {
-  id: string;
-  rent_amount: number;
-  status: string;
-  property_id: string;
-  tenant_id: string;
-  start_date: string;
-  end_date: string;
-}
 
 const METHOD_LABELS: Record<string, string> = {
   mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash', bank_transfer: 'Bank Transfer',
@@ -46,72 +26,43 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function FinanceDashboardPage() {
-  const [payments, setPayments] = useState<PaymentRow[]>([]);
-  const [leases, setLeases] = useState<LeaseRow[]>([]);
-  const [tenants, setTenants] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    const [paymentsRes, leasesRes, tenantsRes] = await Promise.all([
-      supabase.from('payments').select('*').order('payment_date', { ascending: false }),
-      supabase.from('leases').select('*'),
-      supabase.from('tenants').select('id, full_name'),
-    ]);
-    if (paymentsRes.data) setPayments(paymentsRes.data);
-    if (leasesRes.data) setLeases(leasesRes.data);
-    if (tenantsRes.data) setTenants(tenantsRes.data);
-    setLoading(false);
-  };
-
-  // ─── Derived metrics ───────────────────────────────────────
+  const { data: payments = [], isLoading: paymentsLoading } = usePayments();
+  const { data: leases = [], isLoading: leasesLoading } = useLeases();
+  const { data: tenants = [], isLoading: tenantsLoading } = useTenantNames();
+  const loading = paymentsLoading || leasesLoading || tenantsLoading;
 
   const totalCompleted = useMemo(() => payments.filter(p => p.status === 'completed').reduce((s, p) => s + p.amount, 0), [payments]);
   const totalPending = useMemo(() => payments.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0), [payments]);
   const totalFailed = useMemo(() => payments.filter(p => p.status === 'failed').reduce((s, p) => s + p.amount, 0), [payments]);
   const totalAll = totalCompleted + totalPending + totalFailed;
-
-  // Collection rate = completed / (completed + pending + failed)
   const collectionRate = totalAll > 0 ? Math.round((totalCompleted / totalAll) * 100) : 0;
-
-  // Expected monthly rent from active leases
   const expectedMonthlyRent = useMemo(() => leases.filter(l => l.status === 'active').reduce((s, l) => s + l.rent_amount, 0), [leases]);
 
-  // ─── Reconciliation (status breakdown) ─────────────────────
   const reconciliationData = useMemo(() => [
     { name: 'Completed', value: totalCompleted, color: STATUS_COLORS.completed, count: payments.filter(p => p.status === 'completed').length },
     { name: 'Pending', value: totalPending, color: STATUS_COLORS.pending, count: payments.filter(p => p.status === 'pending').length },
     { name: 'Failed', value: totalFailed, color: STATUS_COLORS.failed, count: payments.filter(p => p.status === 'failed').length },
   ], [totalCompleted, totalPending, totalFailed, payments]);
 
-  // ─── Payment method breakdown ──────────────────────────────
   const methodData = useMemo(() => {
     const map: Record<string, number> = {};
     payments.filter(p => p.status === 'completed').forEach(p => { map[p.method] = (map[p.method] || 0) + p.amount; });
     return Object.entries(map).map(([k, v]) => ({ name: METHOD_LABELS[k] || k, value: v, color: METHOD_COLORS[k] || 'hsl(var(--muted))' }));
   }, [payments]);
 
-  // ─── Monthly revenue trend (last 6 months) ────────────────
   const monthlyTrend = useMemo(() => {
     const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
       const date = subMonths(now, 5 - i);
       const start = startOfMonth(date);
       const end = endOfMonth(date);
-      const monthPayments = payments.filter(p => {
-        const d = parseISO(p.payment_date);
-        return d >= start && d <= end;
-      });
+      const monthPayments = payments.filter(p => { const d = parseISO(p.payment_date); return d >= start && d <= end; });
       const collected = monthPayments.filter(p => p.status === 'completed').reduce((s, p) => s + p.amount, 0);
       const pending = monthPayments.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0);
       return { month: format(date, 'MMM'), collected, pending, expected: expectedMonthlyRent };
     });
   }, [payments, expectedMonthlyRent]);
 
-  // ─── Collection rate by type ───────────────────────────────
   const typeData = useMemo(() => {
     const types = ['rent', 'deposit', 'maintenance'];
     return types.map(t => {
@@ -122,7 +73,6 @@ export default function FinanceDashboardPage() {
     });
   }, [payments]);
 
-  // ─── Recent unreconciled (pending) ─────────────────────────
   const pendingPayments = useMemo(() => {
     return payments.filter(p => p.status === 'pending').slice(0, 8).map(p => ({
       ...p,
@@ -146,7 +96,6 @@ export default function FinanceDashboardPage() {
         <p className="text-muted-foreground text-sm mt-1">Payment reconciliation, collection rates & revenue analysis</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Collected" value={formatUGX(totalCompleted)} subtitle={`${payments.filter(p => p.status === 'completed').length} payments`} icon={CheckCircle2} variant="primary" delay={0} />
         <StatCard title="Pending" value={formatUGX(totalPending)} subtitle={`${payments.filter(p => p.status === 'pending').length} awaiting`} icon={Clock} variant="warning" delay={0.1} />
@@ -154,7 +103,6 @@ export default function FinanceDashboardPage() {
         <StatCard title="Expected Monthly" value={formatUGX(expectedMonthlyRent)} subtitle={`${leases.filter(l => l.status === 'active').length} active leases`} icon={CreditCard} variant="secondary" delay={0.3} />
       </div>
 
-      {/* Row: Revenue Trend + Reconciliation Pie */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 bg-card rounded-xl border border-border p-5">
           <h3 className="font-heading font-semibold mb-4">Revenue Trend (6 Months)</h3>
@@ -177,9 +125,7 @@ export default function FinanceDashboardPage() {
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={reconciliationData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={3}>
-                {reconciliationData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
+                {reconciliationData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
               <Tooltip formatter={(v: number) => formatUGX(v)} />
             </PieChart>
@@ -201,7 +147,6 @@ export default function FinanceDashboardPage() {
         </motion.div>
       </div>
 
-      {/* Row: Collection by Type + Payment Methods */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-card rounded-xl border border-border p-5">
           <h3 className="font-heading font-semibold mb-4">Collection Rate by Type</h3>
@@ -213,10 +158,7 @@ export default function FinanceDashboardPage() {
                   <span className="text-muted-foreground">{t.rate}% · {formatUGX(t.collected)} / {formatUGX(t.total)}</span>
                 </div>
                 <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all duration-700"
-                    style={{ width: `${t.rate}%` }}
-                  />
+                  <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${t.rate}%` }} />
                 </div>
               </div>
             ))}
@@ -232,9 +174,7 @@ export default function FinanceDashboardPage() {
               <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
                   <Pie data={methodData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={3}>
-                    {methodData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
+                    {methodData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip formatter={(v: number) => formatUGX(v)} />
                 </PieChart>
@@ -255,7 +195,6 @@ export default function FinanceDashboardPage() {
         </motion.div>
       </div>
 
-      {/* Pending Payments Table */}
       {pendingPayments.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="bg-card rounded-xl border border-border p-5">
           <h3 className="font-heading font-semibold mb-4 flex items-center gap-2">
