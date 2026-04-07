@@ -17,18 +17,20 @@ import type { Tables } from '@/integrations/supabase/types';
 type Property = Tables<'properties'>;
 type Unit = Tables<'units'>;
 type TenantInfo = { id: string; full_name: string };
-type UnitTenantMap = Record<string, TenantInfo>;
+type LeaseInfo = { leaseId: string; deposit: number; tenant: TenantInfo };
+type UnitLeaseMap = Record<string, LeaseInfo>;
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [property, setProperty] = useState<Property | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
-  const [unitTenants, setUnitTenants] = useState<UnitTenantMap>({});
+  const [unitLeases, setUnitLeases] = useState<UnitLeaseMap>({});
   const [loading, setLoading] = useState(true);
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [transferUnit, setTransferUnit] = useState<Unit | null>(null);
 
   const fetchData = async () => {
     if (!id) return;
