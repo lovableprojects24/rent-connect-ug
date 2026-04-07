@@ -35,6 +35,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/install" element={<InstallPage />} />
             <Route path="/change-password" element={<ChangePasswordPage />} />
             <Route
               element={
