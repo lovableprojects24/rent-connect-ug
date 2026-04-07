@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Copy, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { Tables, Database } from '@/integrations/supabase/types';
+import type { Tables } from '@/integrations/supabase/types';
 
 type Property = Tables<'properties'>;
 
@@ -19,115 +19,175 @@ interface AddStaffDialogProps {
 export default function AddStaffDialog({ properties, onSuccess }: AddStaffDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [propertyId, setPropertyId] = useState('');
+  const [result, setResult] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!open) {
+      setFullName('');
       setEmail('');
+      setPhone('');
       setPropertyId('');
+      setResult(null);
+      setCopied(false);
     }
   }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !propertyId) return;
+    if (!fullName.trim() || !email.trim() || !phone.trim() || !propertyId) return;
 
     setLoading(true);
     try {
-      const { data: lookupData, error: lookupError } = await supabase
-        .rpc('find_user_by_email' as any, { _email: email.trim().toLowerCase() });
-      
-      if (lookupError || !lookupData) {
-        toast.error('No user found with that email. They must create an account first.');
-        setLoading(false);
-        return;
-      }
+      // Create the manager account via edge function
+      const { data, error } = await supabase.functions.invoke('create-tenant', {
+        body: {
+          full_name: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
+          is_manager: true,
+        },
+      });
 
-      const userId = (lookupData as any as string);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const { data: existing } = await supabase
-        .from('property_staff')
-        .select('id')
-        .eq('property_id', propertyId)
-        .eq('user_id', userId)
-        .maybeSingle();
+      const newUserId = data.user_id;
 
-      if (existing) {
-        toast.error('This user is already assigned to this property.');
-        setLoading(false);
-        return;
-      }
-
-      const { error: insertError } = await supabase
+      // Assign manager to the selected property
+      const { error: staffError } = await supabase
         .from('property_staff')
         .insert({
           property_id: propertyId,
-          user_id: userId,
+          user_id: newUserId,
           role: 'manager' as any,
         });
 
-      if (insertError) throw insertError;
+      if (staffError) throw staffError;
 
-      // Ensure the user has the manager role
-      await supabase
-        .from('user_roles')
-        .upsert({ user_id: userId, role: 'manager' as any }, { onConflict: 'user_id,role' })
-        .select();
+      setResult({
+        email: data.email,
+        password: data.temporary_password,
+      });
 
-      toast.success('Manager assigned successfully');
-      setOpen(false);
+      toast.success('Manager account created and assigned to property');
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to assign manager');
+      toast.error(error.message || 'Failed to create manager');
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyCredentials = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(`Email: ${result.email}\nTemporary Password: ${result.password}`);
+    setCopied(true);
+    toast.success('Credentials copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2">
-          <UserPlus className="w-4 h-4" /> Assign Manager
+          <UserPlus className="w-4 h-4" /> Create Manager
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Assign Manager to Property</DialogTitle>
+          <DialogTitle>{result ? 'Manager Created' : 'Create New Manager'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label>Manager Email</Label>
-            <Input
-              type="email"
-              placeholder="manager@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              maxLength={255}
-            />
-            <p className="text-xs text-muted-foreground">The manager must already have a RentFlow account.</p>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Property</Label>
-            <Select value={propertyId} onValueChange={setPropertyId} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select property" />
-              </SelectTrigger>
-              <SelectContent>
-                {properties.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {result ? (
+          <div className="space-y-4 pt-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2 text-primary">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="font-medium">Account created successfully!</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Email:</span>{' '}
+                  <span className="font-mono font-medium">{result.email}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Temporary Password:</span>{' '}
+                  <span className="font-mono font-medium">{result.password}</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Share these credentials with the manager. They will be prompted to change their password on first login.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={copyCredentials} variant="outline" className="flex-1 gap-2">
+                {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Copy Credentials'}
+              </Button>
+              <Button onClick={() => setOpen(false)} className="flex-1">Done</Button>
+            </div>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                maxLength={255}
+              />
+            </div>
 
-          <Button type="submit" className="w-full" disabled={loading || !email || !propertyId}>
-            {loading ? 'Assigning...' : 'Assign Manager'}
-          </Button>
-        </form>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="manager@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                maxLength={255}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Phone</Label>
+              <Input
+                type="tel"
+                placeholder="+256 7XX XXX XXX"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                maxLength={20}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Assign to Property</Label>
+              <Select value={propertyId} onValueChange={setPropertyId} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading || !fullName || !email || !phone || !propertyId}>
+              {loading ? 'Creating Account...' : 'Create Manager Account'}
+            </Button>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
