@@ -22,7 +22,7 @@ export default function AddStaffDialog({ properties, onSuccess }: AddStaffDialog
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [propertyId, setPropertyId] = useState('');
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
   const [result, setResult] = useState<{ email: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -31,19 +31,24 @@ export default function AddStaffDialog({ properties, onSuccess }: AddStaffDialog
       setFullName('');
       setEmail('');
       setPhone('');
-      setPropertyId('');
+      setSelectedPropertyIds([]);
       setResult(null);
       setCopied(false);
     }
   }, [open]);
 
+  const toggleProperty = (id: string) => {
+    setSelectedPropertyIds(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !email.trim() || !phone.trim() || !propertyId) return;
+    if (!fullName.trim() || !email.trim() || !phone.trim() || selectedPropertyIds.length === 0) return;
 
     setLoading(true);
     try {
-      // Create the manager account via edge function
       const { data, error } = await supabase.functions.invoke('create-tenant', {
         body: {
           full_name: fullName.trim(),
@@ -58,14 +63,16 @@ export default function AddStaffDialog({ properties, onSuccess }: AddStaffDialog
 
       const newUserId = data.user_id;
 
-      // Assign manager to the selected property
+      // Assign manager to all selected properties
       const { error: staffError } = await supabase
         .from('property_staff')
-        .insert({
-          property_id: propertyId,
-          user_id: newUserId,
-          role: 'manager' as any,
-        });
+        .insert(
+          selectedPropertyIds.map(pid => ({
+            property_id: pid,
+            user_id: newUserId,
+            role: 'manager' as any,
+          }))
+        );
 
       if (staffError) throw staffError;
 
