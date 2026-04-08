@@ -49,12 +49,16 @@ export default function OnboardingRequestsPage() {
           if (userId) {
             await supabase.from('profiles').update({ is_approved: true }).eq('user_id', userId);
 
-            // Landlord applicants get the manager role
+            // Landlord applicants get admin role (they become property admins)
             if (request.account_type === 'landlord') {
-              // Remove default tenant role and assign manager
+              // Remove default tenant role, keep landlord, add admin
               await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', 'tenant');
               await supabase.from('user_roles').upsert(
-                { user_id: userId, role: 'manager' as any },
+                { user_id: userId, role: 'admin' as any },
+                { onConflict: 'user_id,role' }
+              );
+              await supabase.from('user_roles').upsert(
+                { user_id: userId, role: 'landlord' as any },
                 { onConflict: 'user_id,role' }
               );
             }

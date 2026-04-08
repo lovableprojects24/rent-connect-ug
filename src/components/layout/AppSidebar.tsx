@@ -24,12 +24,24 @@ interface NavItem {
   path: string;
 }
 
-const adminNavItems: NavItem[] = [
+const superAdminNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/' },
   { label: 'Requests', icon: UserPlus, path: '/requests' },
   { label: 'Properties', icon: Building2, path: '/properties' },
   { label: 'Managers', icon: Users, path: '/staff' },
   { label: 'All Tenants', icon: Users, path: '/tenants' },
+  { label: 'Payments', icon: DollarSign, path: '/payments' },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
+  { label: 'Reports', icon: BarChart3, path: '/reports' },
+  { label: 'Notifications', icon: Bell, path: '/notifications' },
+  { label: 'Settings', icon: Settings, path: '/settings' },
+];
+
+const landlordAdminNavItems: NavItem[] = [
+  { label: 'Dashboard', icon: Home, path: '/' },
+  { label: 'My Properties', icon: Building2, path: '/properties' },
+  { label: 'My Staff', icon: Users, path: '/staff' },
+  { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
   { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
   { label: 'Reports', icon: BarChart3, path: '/reports' },
@@ -70,14 +82,19 @@ export default function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
     navigate('/auth');
   };
 
+  const isSuperAdmin = roles.includes('admin') && !roles.includes('landlord');
+  const isLandlordAdmin = roles.includes('admin') && roles.includes('landlord');
+
   const getNavItems = () => {
-    if (roles.includes('admin')) return adminNavItems;
+    if (isSuperAdmin) return superAdminNavItems;
+    if (isLandlordAdmin) return landlordAdminNavItems;
     if (roles.includes('manager')) return managerNavItems;
     return tenantNavItems;
   };
 
   const getRoleLabel = () => {
-    if (roles.includes('admin')) return 'Admin Portal';
+    if (isSuperAdmin) return 'Super Admin';
+    if (isLandlordAdmin) return 'Admin Portal';
     if (roles.includes('manager')) return 'Manager Portal';
     return 'Tenant Portal';
   };

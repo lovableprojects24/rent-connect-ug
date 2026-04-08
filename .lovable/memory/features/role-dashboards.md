@@ -1,11 +1,12 @@
 ---
 name: Role-based dashboards
-description: 3-tier hierarchy dashboards — Admin (control center), Manager (property ops), Tenant (portal)
+description: Two-tier admin system — Super Admin (system-wide), Landlord Admin (own properties), Manager, Tenant
 type: feature
 ---
-- Admin → AdminDashboardPage: system-wide stats, staff onboarding, property performance, all transactions
-- Manager (landlord/agent) → ManagerDashboardPage: occupancy, rent collection, maintenance requests
+- Super Admin (admin role only) → AdminDashboardPage: system-wide stats, staff onboarding, all transactions, onboarding requests
+- Landlord Admin (admin + landlord roles) → LandlordAdminDashboardPage: own properties, tenants, payments, can assign own managers
+- Manager → ManagerDashboardPage: occupancy, rent collection, maintenance
 - Tenant → TenantPortalPage: financial, maintenance, lease tabs
-- Finance-only → redirects to FinanceDashboardPage
-- DashboardPage is a smart router that renders the correct dashboard based on user roles
-- Sidebar shows role-specific navigation items (adminNavItems, managerNavItems, financeNavItems, tenantNavItems)
+- Approved landlord applicants receive both `admin` and `landlord` roles
+- DashboardPage routes based on role combination
+- Sidebar: superAdminNavItems (includes Requests), landlordAdminNavItems (includes My Staff), managerNavItems, tenantNavItems
