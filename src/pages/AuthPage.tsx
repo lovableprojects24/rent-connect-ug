@@ -316,12 +316,12 @@ export default function AuthPage() {
                         <p className="font-medium text-sm text-foreground mb-3">Which best describes you? <span className="text-destructive">*</span></p>
                         <div className="space-y-2">
                           {descriptions.map((d) => (
-                            <label key={d} className="flex items-center gap-3 cursor-pointer group">
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${description === d ? 'border-[#2d8f4e]' : 'border-border group-hover:border-muted-foreground'}`}>
+                            <button type="button" key={d} onClick={() => setDescription(d)} className="flex items-center gap-3 cursor-pointer group w-full text-left">
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${description === d ? 'border-[#2d8f4e]' : 'border-border group-hover:border-muted-foreground'}`}>
                                 {description === d && <div className="w-2 h-2 rounded-full bg-[#2d8f4e]" />}
                               </div>
                               <span className="text-sm text-foreground">{d}</span>
-                            </label>
+                            </button>
                           ))}
                         </div>
                       </div>
