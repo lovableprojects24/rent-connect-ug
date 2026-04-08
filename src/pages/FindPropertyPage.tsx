@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, MapPin, Search, Send, CheckCircle } from 'lucide-react';
+import { Building2, MapPin, Search, Send, CheckCircle, ImageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableListings, useApplyForUnit, useMyApplications } from '@/hooks/useRentalApplications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -84,15 +84,29 @@ export default function FindPropertyPage() {
             const hasApplied = appliedUnitIds.has(unit.id);
             return (
               <div key={unit.id} className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                <div className="bg-gradient-to-br from-primary/80 to-primary p-5 text-primary-foreground">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-heading font-semibold text-lg">{unit.name}</h3>
+                {unit.properties?.image_url ? (
+                  <div className="relative h-44 overflow-hidden">
+                    <img
+                      src={unit.properties.image_url}
+                      alt={unit.properties?.name || 'Property'}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4 text-white">
+                      <h3 className="font-heading font-semibold text-lg leading-tight">{unit.name}</h3>
                       <p className="text-sm opacity-90 capitalize">{unit.type}</p>
                     </div>
-                    <Building2 className="w-7 h-7 opacity-60" />
                   </div>
-                </div>
+                ) : (
+                  <div className="relative h-44 bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center">
+                    <ImageIcon className="w-12 h-12 text-primary-foreground/30" />
+                    <div className="absolute bottom-3 left-4 right-4 text-primary-foreground">
+                      <h3 className="font-heading font-semibold text-lg leading-tight">{unit.name}</h3>
+                      <p className="text-sm opacity-90 capitalize">{unit.type}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="p-5 space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Building2 className="w-4 h-4" />
