@@ -42,6 +42,7 @@ const superAdminNavItems: NavItem[] = [
 const landlordAdminNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/' },
   { label: 'My Properties', icon: Building2, path: '/properties' },
+  { label: 'Applications', icon: FileText, path: '/rental-applications' },
   { label: 'My Staff', icon: Users, path: '/staff' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
@@ -54,6 +55,7 @@ const landlordAdminNavItems: NavItem[] = [
 const managerNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/' },
   { label: 'My Properties', icon: Building2, path: '/properties' },
+  { label: 'Applications', icon: FileText, path: '/rental-applications' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
   { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
