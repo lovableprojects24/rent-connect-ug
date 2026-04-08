@@ -23,6 +23,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import InstallPage from "@/pages/InstallPage";
 import OnboardingPage from "@/pages/OnboardingPage";
+import OnboardingRequestsPage from "@/pages/OnboardingRequestsPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               }
             >
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/requests" element={<OnboardingRequestsPage />} />
               <Route path="/properties" element={<PropertiesPage />} />
               <Route path="/properties/:id" element={<PropertyDetailPage />} />
               <Route path="/tenants" element={<TenantsPage />} />

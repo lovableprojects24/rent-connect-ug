@@ -4,6 +4,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import {
   Building2,
   Users,
+  UserPlus,
   DollarSign,
   Wrench,
   BarChart3,
@@ -25,6 +26,7 @@ interface NavItem {
 
 const adminNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/' },
+  { label: 'Requests', icon: UserPlus, path: '/requests' },
   { label: 'Properties', icon: Building2, path: '/properties' },
   { label: 'Managers', icon: Users, path: '/staff' },
   { label: 'All Tenants', icon: Users, path: '/tenants' },
