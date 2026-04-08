@@ -29,6 +29,7 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [deleteStaff, setDeleteStaff] = useState<StaffMember | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [reassignStaff, setReassignStaff] = useState<StaffMember | null>(null);
   const { user, roles } = useAuth();
 
   const isSuperAdmin = roles.includes('admin') && !roles.includes('landlord');
