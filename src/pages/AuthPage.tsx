@@ -71,6 +71,7 @@ export default function AuthPage() {
   const [showReqPassword, setShowReqPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [requested, setRequested] = useState(false);
+  const [tenantMessage, setTenantMessage] = useState('');
 
   if (loading) {
     return (
