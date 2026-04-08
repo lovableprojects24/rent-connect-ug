@@ -472,6 +472,57 @@ export type Database = {
           },
         ]
       }
+      rental_applications: {
+        Row: {
+          applicant_user_id: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          message: string | null
+          phone: string
+          property_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          applicant_user_id: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          message?: string | null
+          phone: string
+          property_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          applicant_user_id?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          message?: string | null
+          phone?: string
+          property_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tenants: {
         Row: {
           created_at: string
@@ -704,6 +755,7 @@ export type Database = {
         | "admin"
         | "finance"
         | "manager"
+      application_status: "pending" | "approved" | "rejected" | "cancelled"
       lease_status: "active" | "inactive" | "pending" | "terminated"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "open" | "in_progress" | "resolved" | "closed"
@@ -852,6 +904,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["landlord", "tenant", "agent", "admin", "finance", "manager"],
+      application_status: ["pending", "approved", "rejected", "cancelled"],
       lease_status: ["active", "inactive", "pending", "terminated"],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["open", "in_progress", "resolved", "closed"],

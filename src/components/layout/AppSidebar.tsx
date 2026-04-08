@@ -12,6 +12,8 @@ import {
   Settings,
   LogOut,
   Home,
+  Search,
+  FileText,
   LucideIcon,
 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
@@ -40,6 +42,7 @@ const superAdminNavItems: NavItem[] = [
 const landlordAdminNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/' },
   { label: 'My Properties', icon: Building2, path: '/properties' },
+  { label: 'Applications', icon: FileText, path: '/rental-applications' },
   { label: 'My Staff', icon: Users, path: '/staff' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
@@ -52,6 +55,7 @@ const landlordAdminNavItems: NavItem[] = [
 const managerNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/' },
   { label: 'My Properties', icon: Building2, path: '/properties' },
+  { label: 'Applications', icon: FileText, path: '/rental-applications' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
   { label: 'Maintenance', icon: Wrench, path: '/maintenance' },
@@ -60,6 +64,8 @@ const managerNavItems: NavItem[] = [
 
 const tenantNavItems: NavItem[] = [
   { label: 'Dashboard', icon: Home, path: '/portal' },
+  { label: 'Find a Place', icon: Search, path: '/find-property' },
+  { label: 'My Applications', icon: FileText, path: '/my-applications' },
   { label: 'My Payments', icon: DollarSign, path: '/portal?tab=financial' },
   { label: 'Maintenance', icon: Wrench, path: '/portal?tab=maintenance' },
   { label: 'Notifications', icon: Bell, path: '/notifications' },

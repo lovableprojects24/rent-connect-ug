@@ -24,6 +24,9 @@ import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import InstallPage from "@/pages/InstallPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import OnboardingRequestsPage from "@/pages/OnboardingRequestsPage";
+import FindPropertyPage from "@/pages/FindPropertyPage";
+import MyApplicationsPage from "@/pages/MyApplicationsPage";
+import RentalApplicationsPage from "@/pages/RentalApplicationsPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -61,6 +64,9 @@ const App = () => (
               <Route path="/staff" element={<StaffPage />} />
               <Route path="/portal" element={<TenantPortalPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/find-property" element={<FindPropertyPage />} />
+              <Route path="/my-applications" element={<MyApplicationsPage />} />
+              <Route path="/rental-applications" element={<RentalApplicationsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
