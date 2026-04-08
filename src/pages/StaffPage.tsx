@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Users, Building2, Trash2, Shield } from 'lucide-react';
+import { Users, Building2, Trash2, Shield, ArrowRightLeft } from 'lucide-react';
 import ResetPasswordButton from '@/components/shared/ResetPasswordButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import AddStaffDialog from '@/components/forms/AddStaffDialog';
+import ReassignStaffDialog from '@/components/forms/ReassignStaffDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
 import { toast } from 'sonner';
 import type { Tables, Database } from '@/integrations/supabase/types';
@@ -28,6 +29,7 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [deleteStaff, setDeleteStaff] = useState<StaffMember | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [reassignStaff, setReassignStaff] = useState<StaffMember | null>(null);
   const { user, roles } = useAuth();
 
   const isSuperAdmin = roles.includes('admin') && !roles.includes('landlord');
@@ -200,6 +202,9 @@ export default function StaffPage() {
                       {new Date(member.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                      <button onClick={() => setReassignStaff(member)} className="text-primary hover:underline text-sm flex items-center gap-1">
+                        <ArrowRightLeft className="w-3.5 h-3.5" /> Reassign
+                      </button>
                       <ResetPasswordButton targetUserId={member.user_id} targetName={member.staff_name || 'User'} size="sm" />
                       <button onClick={() => setDeleteStaff(member)} className="text-destructive hover:underline text-sm">Remove</button>
                     </td>
@@ -218,6 +223,16 @@ export default function StaffPage() {
         loading={deleting}
         title="Remove Staff"
         description={`Are you sure you want to remove "${deleteStaff?.staff_name || 'this user'}" from "${deleteStaff?.property_name}"?`}
+      />
+
+      <ReassignStaffDialog
+        open={!!reassignStaff}
+        onOpenChange={(o) => !o && setReassignStaff(null)}
+        staffId={reassignStaff?.id || ''}
+        staffName={reassignStaff?.staff_name || 'Manager'}
+        currentPropertyId={reassignStaff?.property_id || ''}
+        properties={properties}
+        onSuccess={fetchData}
       />
     </div>
   );
