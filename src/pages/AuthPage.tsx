@@ -153,6 +153,27 @@ export default function AuthPage() {
     }
   };
 
+  const handleTenantRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`;
+      await supabase.from('onboarding_requests').insert({
+        full_name: fullName,
+        email: reqEmail.trim(),
+        phone: reqPhone.trim(),
+        account_type: 'tenant',
+        message: tenantMessage.trim() || null,
+      });
+      setRequested(true);
+      toast.success('Request submitted successfully!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const canProceedStep1 = description && experience;
   const isPasswordValid = reqPassword.length >= 8 && /[A-Z]/.test(reqPassword) && /[a-z]/.test(reqPassword) && /[0-9]/.test(reqPassword);
 
