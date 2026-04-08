@@ -97,13 +97,6 @@ export default function AuthPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/dashboard' },
-    });
-    if (error) toast.error(error.message);
-  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
