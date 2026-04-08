@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { UserPlus, Copy, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -177,20 +177,28 @@ export default function AddStaffDialog({ properties, onSuccess }: AddStaffDialog
             </div>
 
             <div className="space-y-2">
-              <Label>Assign to Property</Label>
-              <Select value={propertyId} onValueChange={setPropertyId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select property" />
-                </SelectTrigger>
-                <SelectContent>
-                  {properties.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Assign to Properties</Label>
+              <div className="border border-border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
+                {properties.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No properties available</p>
+                ) : (
+                  properties.map((p) => (
+                    <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                      <Checkbox
+                        checked={selectedPropertyIds.includes(p.id)}
+                        onCheckedChange={() => toggleProperty(p.id)}
+                      />
+                      {p.name}
+                    </label>
+                  ))
+                )}
+              </div>
+              {selectedPropertyIds.length > 0 && (
+                <p className="text-xs text-muted-foreground">{selectedPropertyIds.length} selected</p>
+              )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading || !fullName || !email || !phone || !propertyId}>
+            <Button type="submit" className="w-full" disabled={loading || !fullName || !email || !phone || selectedPropertyIds.length === 0}>
               {loading ? 'Creating Account...' : 'Create Manager Account'}
             </Button>
           </form>
