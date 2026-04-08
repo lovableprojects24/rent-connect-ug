@@ -41,13 +41,23 @@ export default function OnboardingRequestsPage() {
         .eq('id', id);
       if (error) throw error;
 
-      // If approving, also approve the user's profile if they have one
+      // If approving, also approve the user's profile and assign proper role
       if (status === 'approved') {
         const request = requests.find(r => r.id === id);
         if (request?.email) {
           const { data: userId } = await supabase.rpc('find_user_by_email', { _email: request.email });
           if (userId) {
             await supabase.from('profiles').update({ is_approved: true }).eq('user_id', userId);
+
+            // Landlord applicants get the manager role
+            if (request.account_type === 'landlord') {
+              // Remove default tenant role and assign manager
+              await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', 'tenant');
+              await supabase.from('user_roles').upsert(
+                { user_id: userId, role: 'manager' as any },
+                { onConflict: 'user_id,role' }
+              );
+            }
           }
         }
       }
