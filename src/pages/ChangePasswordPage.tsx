@@ -19,7 +19,7 @@ export default function ChangePasswordPage() {
 
   // If user doesn't need to change password, redirect
   if (user && profile && !profile.must_change_password) {
-    navigate('/', { replace: true });
+    navigate('/dashboard', { replace: true });
     return null;
   }
 

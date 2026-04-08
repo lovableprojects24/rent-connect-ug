@@ -45,7 +45,7 @@ export default function OnboardingPage() {
     setProgress(p);
     setActiveStep(Math.min(p.current_step - 1, 5));
     setLoading(false);
-    if (onboardingService.isComplete(p)) navigate('/', { replace: true });
+    if (onboardingService.isComplete(p)) navigate('/dashboard', { replace: true });
   };
 
   const handleStepComplete = useCallback(async (stepIndex: number, extra: Record<string, any> = {}) => {
@@ -55,7 +55,7 @@ export default function OnboardingPage() {
       setProgress(updated);
       if (onboardingService.isComplete(updated)) {
         toast.success('🎉 Onboarding complete! Welcome to RentFlow.');
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       } else {
         setActiveStep(Math.min(stepIndex + 1, 5));
       }
