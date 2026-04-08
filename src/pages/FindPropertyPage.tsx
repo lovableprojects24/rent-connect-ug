@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, MapPin, Search, Send, CheckCircle, ImageIcon } from 'lucide-react';
+import { Building2, MapPin, Search, Send, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableListings, useApplyForUnit, useMyApplications } from '@/hooks/useRentalApplications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,6 +9,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { formatUGX } from '@/lib/utils';
 import StatusBadge from '@/components/shared/StatusBadge';
+
+import imgApartments from '@/assets/property-apartments.jpg';
+import imgRentalHouses from '@/assets/property-rental-houses.jpg';
+import imgCommercial from '@/assets/property-commercial.jpg';
+import imgHostel from '@/assets/property-hostel.jpg';
+import imgLuxury from '@/assets/property-luxury.jpg';
+
+const FALLBACK_IMAGES: Record<string, string> = {
+  'Apartments': imgApartments,
+  'Rental Houses': imgRentalHouses,
+  'Commercial': imgCommercial,
+  'Hostel': imgHostel,
+  'Mixed Use': imgLuxury,
+};
+
+const getFallbackImage = (propertyType?: string) =>
+  FALLBACK_IMAGES[propertyType || ''] || imgApartments;
 
 export default function FindPropertyPage() {
   const { user, profile } = useAuth();
