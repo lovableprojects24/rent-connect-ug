@@ -224,6 +224,16 @@ export default function StaffPage() {
         title="Remove Staff"
         description={`Are you sure you want to remove "${deleteStaff?.staff_name || 'this user'}" from "${deleteStaff?.property_name}"?`}
       />
+
+      <ReassignStaffDialog
+        open={!!reassignStaff}
+        onOpenChange={(o) => !o && setReassignStaff(null)}
+        staffId={reassignStaff?.id || ''}
+        staffName={reassignStaff?.staff_name || 'Manager'}
+        currentPropertyId={reassignStaff?.property_id || ''}
+        properties={properties}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }
