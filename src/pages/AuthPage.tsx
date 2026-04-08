@@ -288,46 +288,109 @@ export default function AuthPage() {
                     </button>
                   </div>
 
-                  <div className="mb-6">
-                    <p className="font-medium text-sm text-foreground mb-3">Which best describes you? <span className="text-destructive">*</span></p>
-                    <div className="space-y-2">
-                      {descriptions.map((d) => (
-                        <label key={d} className="flex items-center gap-3 cursor-pointer group">
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${description === d ? 'border-[#2d8f4e]' : 'border-border group-hover:border-muted-foreground'}`}>
-                            {description === d && <div className="w-2 h-2 rounded-full bg-[#2d8f4e]" />}
+                  {accountType === 'landlord' && (
+                    <>
+                      <div className="mb-6">
+                        <p className="font-medium text-sm text-foreground mb-3">Which best describes you? <span className="text-destructive">*</span></p>
+                        <div className="space-y-2">
+                          {descriptions.map((d) => (
+                            <label key={d} className="flex items-center gap-3 cursor-pointer group">
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${description === d ? 'border-[#2d8f4e]' : 'border-border group-hover:border-muted-foreground'}`}>
+                                {description === d && <div className="w-2 h-2 rounded-full bg-[#2d8f4e]" />}
+                              </div>
+                              <span className="text-sm text-foreground">{d}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <p className="font-medium text-sm text-foreground mb-3">How many units do you own/manage? <span className="text-destructive">*</span></p>
+                        <div className="inline-flex items-center border border-border rounded-lg overflow-hidden">
+                          <button type="button" onClick={() => setUnitCount(Math.max(0, unitCount - 1))} className="px-3 py-2 hover:bg-muted transition-colors text-muted-foreground"><Minus className="w-4 h-4" /></button>
+                          <span className="px-5 py-2 border-x border-border text-sm font-medium min-w-[3rem] text-center">{unitCount}</span>
+                          <button type="button" onClick={() => setUnitCount(unitCount + 1)} className="px-3 py-2 hover:bg-muted transition-colors text-[#2d8f4e]"><Plus className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+
+                      <div className="mb-8">
+                        <p className="font-medium text-sm text-foreground mb-3">How long have you managed rentals? <span className="text-destructive">*</span></p>
+                        <div className="space-y-2">
+                          {experienceOptions.map((exp) => (
+                            <label key={exp} className="flex items-center gap-3 cursor-pointer group">
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${experience === exp ? 'border-[#2d8f4e]' : 'border-border group-hover:border-muted-foreground'}`}>
+                                {experience === exp && <div className="w-2 h-2 rounded-full bg-[#2d8f4e]" />}
+                              </div>
+                              <span className="text-sm text-foreground">{exp}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Button onClick={() => setStep(2)} disabled={!canProceedStep1} className="w-full bg-[#2d8f4e] hover:bg-[#24733f] text-white h-12 text-sm font-semibold disabled:opacity-40">
+                        Next <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+
+                  {accountType === 'tenant' && (
+                    <>
+                      <div className="bg-[#fdf8ef] border border-[#d4a843]/30 rounded-xl p-5 mb-6">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#d4a843]/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <Phone className="w-5 h-5 text-[#d4a843]" />
                           </div>
-                          <span className="text-sm text-foreground">{d}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <p className="font-medium text-sm text-foreground mb-3">How many units do you own/manage? <span className="text-destructive">*</span></p>
-                    <div className="inline-flex items-center border border-border rounded-lg overflow-hidden">
-                      <button type="button" onClick={() => setUnitCount(Math.max(0, unitCount - 1))} className="px-3 py-2 hover:bg-muted transition-colors text-muted-foreground"><Minus className="w-4 h-4" /></button>
-                      <span className="px-5 py-2 border-x border-border text-sm font-medium min-w-[3rem] text-center">{unitCount}</span>
-                      <button type="button" onClick={() => setUnitCount(unitCount + 1)} className="px-3 py-2 hover:bg-muted transition-colors text-[#2d8f4e]"><Plus className="w-4 h-4" /></button>
-                    </div>
-                  </div>
-
-                  <div className="mb-8">
-                    <p className="font-medium text-sm text-foreground mb-3">How long have you managed rentals? <span className="text-destructive">*</span></p>
-                    <div className="space-y-2">
-                      {experienceOptions.map((exp) => (
-                        <label key={exp} className="flex items-center gap-3 cursor-pointer group">
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${experience === exp ? 'border-[#2d8f4e]' : 'border-border group-hover:border-muted-foreground'}`}>
-                            {experience === exp && <div className="w-2 h-2 rounded-full bg-[#2d8f4e]" />}
+                          <div>
+                            <p className="font-heading font-semibold text-foreground text-sm mb-1">Tenant accounts are created by your landlord</p>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              Your landlord or property manager will set up your account and provide you with login credentials. If you need access, please contact them or reach out to us.
+                            </p>
                           </div>
-                          <span className="text-sm text-foreground">{exp}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                        </div>
+                      </div>
 
-                  <Button onClick={() => setStep(2)} disabled={!canProceedStep1} className="w-full bg-[#2d8f4e] hover:bg-[#24733f] text-white h-12 text-sm font-semibold disabled:opacity-40">
-                    Next <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
+                      <h2 className="font-heading text-lg font-bold text-foreground mb-1">Request Access</h2>
+                      <p className="text-muted-foreground text-sm mb-5">Fill in your details and we'll connect you with your property manager.</p>
+
+                      <form onSubmit={handleTenantRequest} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block mb-1.5 text-xs font-medium text-muted-foreground">First name <span className="text-destructive">*</span></label>
+                            <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                              className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-[#2d8f4e] text-sm" required maxLength={50} />
+                          </div>
+                          <div>
+                            <label className="block mb-1.5 text-xs font-medium text-muted-foreground">Last name <span className="text-destructive">*</span></label>
+                            <input type="text" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                              className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-[#2d8f4e] text-sm" required maxLength={50} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block mb-1.5 text-xs font-medium text-muted-foreground">Email <span className="text-destructive">*</span></label>
+                          <input type="email" placeholder="Enter your email" value={reqEmail} onChange={(e) => setReqEmail(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-[#2d8f4e] text-sm" required maxLength={255} />
+                        </div>
+                        <div>
+                          <label className="block mb-1.5 text-xs font-medium text-muted-foreground">Phone number <span className="text-destructive">*</span></label>
+                          <input type="tel" placeholder="Enter your phone number" value={reqPhone} onChange={(e) => setReqPhone(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-[#2d8f4e] text-sm" required maxLength={20} />
+                        </div>
+                        <div>
+                          <label className="block mb-1.5 text-xs font-medium text-muted-foreground">Message <span className="text-muted-foreground">(optional)</span></label>
+                          <textarea placeholder="e.g. I'm a tenant at Sunshine Apartments, Unit 4B..." value={tenantMessage} onChange={(e) => setTenantMessage(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-[#2d8f4e] text-sm resize-none" rows={3} maxLength={500} />
+                        </div>
+                        <Button type="submit" disabled={submitting} className="w-full bg-[#d4a843] hover:bg-[#c49a3a] text-white h-12 text-sm font-semibold">
+                          {submitting ? 'Submitting...' : 'Submit Request'} {!submitting && <ArrowRight className="ml-2 w-4 h-4" />}
+                        </Button>
+                      </form>
+
+                      <div className="mt-5 text-center">
+                        <p className="text-xs text-muted-foreground">Already have credentials from your landlord?</p>
+                        <button onClick={() => setView('login')} className="text-[#2d8f4e] hover:underline font-medium text-xs mt-1">Sign in here</button>
+                      </div>
+                    </>
+                  )}
 
                   <p className="text-center mt-6 text-xs text-muted-foreground">
                     Already have an account?{' '}
