@@ -746,7 +746,7 @@ function Footer() {
             <ul className="space-y-2 text-sm">
               <li>Kampala, Uganda</li>
               <li>info@rentflow.ug</li>
-              <li>+256 700 000 000</li>
+              <li>+256 703 911851</li>
             </ul>
           </div>
         </div>
