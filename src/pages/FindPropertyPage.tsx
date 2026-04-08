@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, MapPin, Search, Send, CheckCircle } from 'lucide-react';
+import { Building2, MapPin, Search, Send, CheckCircle, ImageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableListings, useApplyForUnit, useMyApplications } from '@/hooks/useRentalApplications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
