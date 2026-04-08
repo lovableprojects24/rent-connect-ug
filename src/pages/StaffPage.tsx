@@ -62,7 +62,9 @@ export default function StaffPage() {
         ? await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds)
         : { data: [] };
 
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+      const profileMap = new Map<string, string | null>(
+        (profiles || []).map(p => [p.user_id, p.full_name] as [string, string | null])
+      );
 
       const mapped: StaffMember[] = filteredStaff.map((s: any) => ({
         id: s.id,
