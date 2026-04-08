@@ -202,6 +202,9 @@ export default function StaffPage() {
                       {new Date(member.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                      <button onClick={() => setReassignStaff(member)} className="text-primary hover:underline text-sm flex items-center gap-1">
+                        <ArrowRightLeft className="w-3.5 h-3.5" /> Reassign
+                      </button>
                       <ResetPasswordButton targetUserId={member.user_id} targetName={member.staff_name || 'User'} size="sm" />
                       <button onClick={() => setDeleteStaff(member)} className="text-destructive hover:underline text-sm">Remove</button>
                     </td>
