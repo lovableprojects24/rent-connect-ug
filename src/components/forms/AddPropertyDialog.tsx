@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PROPERTY_TYPES = ['Apartments', 'Rental Houses', 'Commercial', 'Hostel', 'Mixed Use'];
@@ -23,12 +23,28 @@ export default function AddPropertyDialog({ onSuccess }: AddPropertyDialogProps)
   const [location, setLocation] = useState('');
   const [type, setType] = useState('Apartments');
   const [totalUnits, setTotalUnits] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
     setName('');
     setLocation('');
     setType('Apartments');
     setTotalUnits('');
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,12 +70,24 @@ export default function AddPropertyDialog({ onSuccess }: AddPropertyDialogProps)
 
     setSubmitting(true);
     try {
+      let image_url: string | null = null;
+
+      if (imageFile) {
+        const ext = imageFile.name.split('.').pop();
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('property-images').upload(path, imageFile);
+        if (uploadErr) throw uploadErr;
+        const { data: urlData } = supabase.storage.from('property-images').getPublicUrl(path);
+        image_url = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from('properties').insert({
         name: trimmedName,
         location: trimmedLocation,
         type,
         total_units: units,
         owner_id: user.id,
+        image_url,
       });
       if (error) throw error;
       toast.success('Property added successfully!');
@@ -108,6 +136,22 @@ export default function AddPropertyDialog({ onSuccess }: AddPropertyDialogProps)
               <Label htmlFor="prop-units">Total Units *</Label>
               <Input id="prop-units" type="number" min={1} max={9999} placeholder="e.g. 12" value={totalUnits} onChange={e => setTotalUnits(e.target.value)} required />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Property Image</Label>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+            {imagePreview ? (
+              <div className="relative rounded-lg overflow-hidden h-32">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black/80">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Button type="button" variant="outline" className="w-full gap-2" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="w-4 h-4" /> Upload Image
+              </Button>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? 'Adding…' : 'Add Property'}
