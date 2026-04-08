@@ -4,15 +4,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { onboardingService } from '@/services/onboarding';
 import ManagerDashboardPage from './ManagerDashboardPage';
 import AdminDashboardPage from './AdminDashboardPage';
+import LandlordAdminDashboardPage from './LandlordAdminDashboardPage';
 
 export default function DashboardPage() {
   const { user, roles } = useAuth();
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
+  const isSuperAdmin = roles.includes('admin') && !roles.includes('landlord');
+  const isLandlordAdmin = roles.includes('admin') && roles.includes('landlord');
+
   useEffect(() => {
     if (!user || !roles.length) return;
-    if (!roles.includes('admin')) {
+    // Only super admins go through onboarding check
+    if (!isSuperAdmin) {
       setCheckingOnboarding(false);
       return;
     }
@@ -32,6 +37,11 @@ export default function DashboardPage() {
 
   if (needsOnboarding) return <Navigate to="/onboarding" replace />;
 
-  if (roles.includes('admin')) return <AdminDashboardPage />;
+  // Super Admin (admin without landlord role) → full admin dashboard
+  if (isSuperAdmin) return <AdminDashboardPage />;
+
+  // Landlord Admin (admin + landlord) → landlord-scoped dashboard
+  if (isLandlordAdmin) return <LandlordAdminDashboardPage />;
+
   return <ManagerDashboardPage />;
 }
