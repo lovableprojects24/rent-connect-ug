@@ -253,6 +253,51 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_requests: {
+        Row: {
+          account_type: string
+          created_at: string
+          description: string | null
+          email: string
+          experience: string | null
+          full_name: string
+          id: string
+          message: string | null
+          phone: string
+          status: Database["public"]["Enums"]["request_status"]
+          unit_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          account_type?: string
+          created_at?: string
+          description?: string | null
+          email: string
+          experience?: string | null
+          full_name: string
+          id?: string
+          message?: string | null
+          phone: string
+          status?: Database["public"]["Enums"]["request_status"]
+          unit_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          account_type?: string
+          created_at?: string
+          description?: string | null
+          email?: string
+          experience?: string | null
+          full_name?: string
+          id?: string
+          message?: string | null
+          phone?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          unit_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -673,6 +718,7 @@ export type Database = {
         | "pesapal"
       payment_status: "completed" | "pending" | "failed"
       payment_type: "rent" | "deposit" | "maintenance"
+      request_status: "pending" | "approved" | "rejected"
       unit_status: "occupied" | "vacant" | "reserved"
       unit_type: "apartment" | "room" | "bed"
     }
@@ -822,6 +868,7 @@ export const Constants = {
       ],
       payment_status: ["completed", "pending", "failed"],
       payment_type: ["rent", "deposit", "maintenance"],
+      request_status: ["pending", "approved", "rejected"],
       unit_status: ["occupied", "vacant", "reserved"],
       unit_type: ["apartment", "room", "bed"],
     },
