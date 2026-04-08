@@ -28,11 +28,23 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [deleteStaff, setDeleteStaff] = useState<StaffMember | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const { user, roles } = useAuth();
+
+  const isSuperAdmin = roles.includes('admin') && !roles.includes('landlord');
+  const isLandlordAdmin = roles.includes('admin') && roles.includes('landlord');
 
   const fetchData = async () => {
+    if (!user) return;
     setLoading(true);
+
+    // Landlord admins only see their own properties; super admins see all
+    const propertiesQuery = supabase.from('properties').select('*').order('name');
+    if (isLandlordAdmin) {
+      propertiesQuery.eq('owner_id', user.id);
+    }
+
     const [propertiesRes, staffRes] = await Promise.all([
-      supabase.from('properties').select('*').order('name'),
+      propertiesQuery,
       supabase.from('property_staff').select('*, properties(name)').order('created_at', { ascending: false }),
     ]);
 
