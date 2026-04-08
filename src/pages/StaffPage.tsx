@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Users, Building2, Trash2, Shield } from 'lucide-react';
 import ResetPasswordButton from '@/components/shared/ResetPasswordButton';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import AddStaffDialog from '@/components/forms/AddStaffDialog';
 import DeleteConfirmDialog from '@/components/shared/DeleteConfirmDialog';
 import { toast } from 'sonner';
