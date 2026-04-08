@@ -113,7 +113,7 @@ Deno.serve(async (req: Request) => {
     // Set must_change_password flag
     await adminClient
       .from("profiles")
-      .update({ must_change_password: true, phone, full_name: full_name.trim() })
+      .update({ must_change_password: true, phone, full_name: full_name.trim(), is_approved: true })
       .eq("user_id", newUserId);
 
     let tenantData: any = null;
