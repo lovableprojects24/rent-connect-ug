@@ -51,15 +51,20 @@ export default function StaffPage() {
     if (propertiesRes.data) setProperties(propertiesRes.data);
 
     if (staffRes.data) {
-      const userIds = [...new Set(staffRes.data.map((s: any) => s.user_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .in('user_id', userIds);
+      // For landlord admins, filter staff to only their properties
+      const ownPropertyIds = new Set(propertiesRes.data?.map(p => p.id) || []);
+      const filteredStaff = isLandlordAdmin
+        ? staffRes.data.filter((s: any) => ownPropertyIds.has(s.property_id))
+        : staffRes.data;
+
+      const userIds = [...new Set(filteredStaff.map((s: any) => s.user_id))];
+      const { data: profiles } = userIds.length > 0
+        ? await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds)
+        : { data: [] };
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
 
-      const mapped: StaffMember[] = staffRes.data.map((s: any) => ({
+      const mapped: StaffMember[] = filteredStaff.map((s: any) => ({
         id: s.id,
         user_id: s.user_id,
         role: s.role,
