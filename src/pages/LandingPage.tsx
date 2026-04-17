@@ -148,8 +148,8 @@ function Hero() {
 
 function TrustBadges() {
   const stats = [
-    { value: "500+", label: "Landlords Trust Us" },
-    { value: "3,000+", label: "Units Managed" },
+    { value: "20+", label: "Early Landlords" },
+    { value: "100+", label: "Units Managed" },
     { value: "99.9%", label: "Uptime" },
     { value: "24/7", label: "Support" },
   ];
