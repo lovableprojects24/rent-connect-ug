@@ -188,10 +188,10 @@ const features = [
     icon: Users,
     title: "Find the right renters, faster",
     description:
-      "Manage your entire tenant lifecycle — from application to lease to move-out. Keep detailed records with emergency contacts and communication history.",
+      "Manage your entire tenant lifecycle — from application to allocation to move-out. Keep detailed records with emergency contacts and communication history.",
     bullets: [
       "Digital tenant profiles & records",
-      "Lease management with auto-renewal alerts",
+      "Allocation management with auto-renewal alerts",
       "Tenant portal for self-service",
     ],
     image: "/screenshots/tenants.png",
@@ -324,7 +324,7 @@ function PlatformFeatures() {
     {
       icon: Bell,
       title: "Smart Notifications",
-      description: "Automated rent reminders, late payment alerts, and lease expiry notifications.",
+      description: "Automated rent reminders, late payment alerts, and allocation expiry notifications.",
     },
   ];
 
@@ -430,7 +430,7 @@ function UserTypes() {
     },
     {
       title: "Tenants",
-      description: "Self-service portal to pay rent, submit maintenance requests, and view lease details.",
+      description: "Self-service portal to pay rent, submit maintenance requests, and view allocation details.",
       cta: "Learn more",
     },
     {

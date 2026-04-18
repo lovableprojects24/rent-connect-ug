@@ -128,7 +128,7 @@ export default function TenantDetailPage() {
             <div>
               <p className="text-sm opacity-80">Monthly Rent</p>
               <p className="text-2xl font-heading font-bold mt-1">{activeLease ? formatUGX(activeLease.rent_amount) : '—'}</p>
-              <p className="text-xs opacity-70 mt-1">{activeLease ? 'Active lease' : 'No active lease'}</p>
+              <p className="text-xs opacity-70 mt-1">{activeLease ? 'Active allocation' : 'No active allocation'}</p>
             </div>
             <div className="p-2 rounded-lg bg-primary-foreground/15"><CreditCard className="w-5 h-5" /></div>
           </div>
@@ -168,7 +168,7 @@ export default function TenantDetailPage() {
             />
           </div>
           {leases.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">No leases found</p>
+            <p className="text-sm text-muted-foreground text-center py-6">No allocations found</p>
           ) : (
             <div className="space-y-3">
               {leases.map((lease) => (

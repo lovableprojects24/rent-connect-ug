@@ -554,8 +554,8 @@ function LeaseStep({ onComplete, done }: { onComplete: () => void; done: boolean
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><FileText className="w-5 h-5 text-primary" /> Create Lease</CardTitle>
-        <CardDescription>Link tenants to units with lease agreements</CardDescription>
+        <CardTitle className="flex items-center gap-2"><FileText className="w-5 h-5 text-primary" /> Create Allocation</CardTitle>
+        <CardDescription>Link tenants to units with allocation agreements</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {done && <DoneBanner />}
@@ -602,7 +602,7 @@ function LeaseStep({ onComplete, done }: { onComplete: () => void; done: boolean
         </div>
         {leases.length > 0 && (
           <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-            <p className="text-sm font-medium">Active Leases ({leases.length})</p>
+            <p className="text-sm font-medium">Active Allocations ({leases.length})</p>
             {leases.slice(0, 5).map((l: any) => (
               <p key={l.id} className="text-sm text-muted-foreground">
                 • {l.tenants?.full_name} → {l.properties?.name} / {l.units?.name} — {formatUGX(l.rent_amount)}
@@ -611,7 +611,7 @@ function LeaseStep({ onComplete, done }: { onComplete: () => void; done: boolean
           </div>
         )}
         <div className="flex gap-3">
-          <Button onClick={handleCreate} disabled={saving}>{saving ? 'Creating…' : 'Create Lease'}</Button>
+          <Button onClick={handleCreate} disabled={saving}>{saving ? 'Creating…' : 'Create Allocation'}</Button>
           <Button variant="outline" onClick={onComplete} className="gap-2">
             {leases.length > 0 || done ? 'Continue' : 'Skip for now'} <ArrowRight className="w-4 h-4" />
           </Button>
