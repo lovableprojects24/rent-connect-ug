@@ -22,7 +22,7 @@ const STEPS = [
   { title: 'Create Manager', icon: UserPlus, desc: 'Add managers to handle properties' },
   { title: 'Property & Units', icon: Building2, desc: 'Set up properties and rooms' },
   { title: 'Register Tenants', icon: Users, desc: 'Add tenants and assign units' },
-  { title: 'Create Lease', icon: FileText, desc: 'Set up lease agreements' },
+  { title: 'Create Allocation', icon: FileText, desc: 'Set up allocation agreements' },
   { title: 'Payment Config', icon: CreditCard, desc: 'Configure payment methods' },
 ];
 
@@ -545,7 +545,7 @@ function LeaseStep({ onComplete, done }: { onComplete: () => void; done: boolean
       });
       if (error) throw error;
       await supabase.from('units').update({ status: 'occupied' as const }).eq('id', unitId);
-      toast.success('Lease created!');
+      toast.success('Allocation created!');
       setPropertyId(''); setUnitId(''); setTenantId(''); setStartDate(''); setEndDate(''); setRentAmount(''); setDeposit('');
       loadData();
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }

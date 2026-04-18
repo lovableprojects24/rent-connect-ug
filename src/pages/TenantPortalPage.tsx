@@ -191,7 +191,7 @@ export default function TenantPortalPage() {
           {activeLease && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl border border-border p-5">
               <h3 className="font-heading font-semibold mb-4 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-primary" /> Current Lease
+                <Calendar className="w-4 h-4 text-primary" /> Current Allocation
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div>

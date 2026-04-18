@@ -72,7 +72,7 @@ export default function TransferUnitDialog({
       return;
     }
     if (!endDate) {
-      toast.error('Enter an end date for the new lease');
+      toast.error('Enter an end date for the new allocation');
       return;
     }
 
