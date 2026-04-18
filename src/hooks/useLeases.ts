@@ -34,8 +34,8 @@ export function useCreateLease() {
     mutationFn: (lease: TablesInsert<'leases'>) => leasesService.create(lease),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: LEASES_KEY });
-      toast.success('Lease created');
+      toast.success('Allocation created');
     },
-    onError: (error: Error) => toast.error(error.message || 'Failed to create lease'),
+    onError: (error: Error) => toast.error(error.message || 'Failed to create allocation'),
   });
 }
