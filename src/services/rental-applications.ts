@@ -138,7 +138,7 @@ export const rentalApplicationsService = {
         await supabase.from('notifications').insert({
           user_id: app.applicant_user_id,
           title: 'Application Approved! 🎉',
-          message: `Your application for ${(app as any).units?.name || 'the unit'} has been approved. A lease has been created for you.`,
+          message: `Your application for ${(app as any).units?.name || 'the unit'} has been approved. An allocation has been created for you.`,
           type: 'general',
           related_entity_id: app.id,
           related_entity_type: 'rental_application',

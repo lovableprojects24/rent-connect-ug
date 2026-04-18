@@ -118,12 +118,12 @@ export default function AddLeaseDialog({ onSuccess, preselectedTenantId, trigger
       const { error: unitError } = await supabase.from('units').update({ status: 'occupied' as const }).eq('id', unitId);
       if (unitError) throw unitError;
 
-      toast.success('Lease created successfully!');
+      toast.success('Allocation created successfully!');
       resetForm();
       setOpen(false);
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create lease');
+      toast.error(error.message || 'Failed to create allocation');
     } finally {
       setSubmitting(false);
     }
@@ -135,13 +135,13 @@ export default function AddLeaseDialog({ onSuccess, preselectedTenantId, trigger
         {trigger || (
           <Button variant="outline" className="gap-2">
             <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">New Lease</span>
+            <span className="hidden sm:inline">New Allocation</span>
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-heading">Create New Lease</DialogTitle>
+          <DialogTitle className="font-heading">Create New Allocation</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           {/* Property */}
@@ -214,7 +214,7 @@ export default function AddLeaseDialog({ onSuccess, preselectedTenantId, trigger
           </div>
 
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? 'Creating…' : 'Create Lease'}
+            {submitting ? 'Creating…' : 'Create Allocation'}
           </Button>
         </form>
       </DialogContent>

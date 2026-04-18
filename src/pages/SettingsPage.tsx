@@ -474,8 +474,8 @@ export default function SettingsPage() {
             <motion.div {...anim} className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Lease Expiry Alerts</CardTitle>
-                  <CardDescription>Configure automatic lease renewal reminders</CardDescription>
+                  <CardTitle className="text-lg">Allocation Expiry Alerts</CardTitle>
+                  <CardDescription>Configure automatic allocation renewal reminders</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="max-w-sm space-y-2">
@@ -500,12 +500,12 @@ export default function SettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Document Templates</CardTitle>
-                  <CardDescription>Standard Uganda-compliant lease templates</CardDescription>
+                  <CardDescription>Standard Uganda-compliant allocation templates</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between border border-border rounded-xl p-4 bg-muted/30">
                     <div>
-                      <p className="text-sm font-medium">Lease Agreement Template</p>
+                      <p className="text-sm font-medium">Allocation Agreement Template</p>
                       <p className="text-xs text-muted-foreground">Upload a .docx or .pdf template</p>
                     </div>
                     <span className="text-xs bg-muted text-muted-foreground px-3 py-1 rounded-full font-medium">Coming soon</span>

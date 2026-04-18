@@ -137,7 +137,7 @@ export default function FinanceDashboardPage() {
         <StatCard title="Total Collected" value={formatUGX(totalCompleted)} subtitle={`${payments.filter(p => p.status === 'completed').length} payments`} icon={CheckCircle2} variant="primary" delay={0} />
         <StatCard title="Pending" value={formatUGX(totalPending)} subtitle={`${payments.filter(p => p.status === 'pending').length} awaiting`} icon={Clock} variant="warning" delay={0.1} />
         <StatCard title="Collection Rate" value={`${collectionRate}%`} subtitle={`of ${formatUGX(totalAll)}`} icon={TrendingUp} variant="info" delay={0.2} />
-        <StatCard title="Expected Monthly" value={formatUGX(expectedMonthlyRent)} subtitle={`${leases.filter(l => l.status === 'active').length} active leases`} icon={CreditCard} variant="secondary" delay={0.3} />
+        <StatCard title="Expected Monthly" value={formatUGX(expectedMonthlyRent)} subtitle={`${leases.filter(l => l.status === 'active').length} active allocations`} icon={CreditCard} variant="secondary" delay={0.3} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

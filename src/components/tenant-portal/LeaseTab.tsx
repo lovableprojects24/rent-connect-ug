@@ -11,7 +11,7 @@ export default function LeaseTab({ leases }: LeaseTabProps) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <FileText className="w-10 h-10 mx-auto mb-2 opacity-30" />
-        <p className="text-sm">No lease records found</p>
+        <p className="text-sm">No allocation records found</p>
       </div>
     );
   }

@@ -103,7 +103,7 @@ export default function TenantPortalPage() {
                   <span>{activeLease.properties?.name} · {activeLease.units?.name}</span>
                 </div>
               ) : (
-                <p className="text-blue-200 text-sm">No active lease</p>
+                <p className="text-blue-200 text-sm">No active allocation</p>
               )}
             </div>
             {activeLease && (
@@ -155,7 +155,7 @@ export default function TenantPortalPage() {
             <FileText className="w-5 h-5" />
           </div>
           <p className="text-lg font-heading font-semibold">{leases.length}</p>
-          <p className="text-xs text-muted-foreground">Lease Records</p>
+          <p className="text-xs text-muted-foreground">Allocation Records</p>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
           className="bg-card rounded-xl border border-border p-4 text-center"
@@ -181,7 +181,7 @@ export default function TenantPortalPage() {
             <Wrench className="w-4 h-4" /> <span className="hidden sm:inline">Maintenance</span>
           </TabsTrigger>
           <TabsTrigger value="lease" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-            <FileText className="w-4 h-4" /> <span className="hidden sm:inline">Lease</span>
+            <FileText className="w-4 h-4" /> <span className="hidden sm:inline">Allocation</span>
           </TabsTrigger>
         </TabsList>
 
