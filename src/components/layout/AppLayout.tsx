@@ -22,9 +22,11 @@ export default function AppLayout() {
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
+            {/* Hamburger hidden on mobile (bottom nav handles navigation); shown only if needed on tablet between sm and lg */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-muted"
+              className="hidden p-2 rounded-lg hover:bg-muted"
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
