@@ -13,6 +13,7 @@ import {
   Home,
   Search,
   FileText,
+  MoreHorizontal,
   LucideIcon,
 } from 'lucide-react';
 
@@ -27,7 +28,6 @@ const superAdminItems: NavItem[] = [
   { label: 'Properties', icon: Building2, path: '/properties' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
-  { label: 'Alerts', icon: Bell, path: '/notifications' },
 ];
 
 const landlordAdminItems: NavItem[] = [
@@ -35,7 +35,6 @@ const landlordAdminItems: NavItem[] = [
   { label: 'Properties', icon: Building2, path: '/properties' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Payments', icon: DollarSign, path: '/payments' },
-  { label: 'Alerts', icon: Bell, path: '/notifications' },
 ];
 
 const managerItems: NavItem[] = [
@@ -43,7 +42,6 @@ const managerItems: NavItem[] = [
   { label: 'Properties', icon: Building2, path: '/properties' },
   { label: 'Tenants', icon: Users, path: '/tenants' },
   { label: 'Repairs', icon: Wrench, path: '/maintenance' },
-  { label: 'Alerts', icon: Bell, path: '/notifications' },
 ];
 
 const tenantItems: NavItem[] = [
@@ -51,10 +49,13 @@ const tenantItems: NavItem[] = [
   { label: 'Find', icon: Search, path: '/find-property' },
   { label: 'Apps', icon: FileText, path: '/my-applications' },
   { label: 'Repairs', icon: Wrench, path: '/portal?tab=maintenance' },
-  { label: 'Alerts', icon: Bell, path: '/notifications' },
 ];
 
-export default function MobileBottomNav() {
+interface MobileBottomNavProps {
+  onOpenMore?: () => void;
+}
+
+export default function MobileBottomNav({ onOpenMore }: MobileBottomNavProps) {
   const location = useLocation();
   const { roles } = useAuth();
   const { unreadCount } = useNotifications();
@@ -90,16 +91,26 @@ export default function MobileBottomNav() {
               >
                 <item.icon className="w-5 h-5" />
                 <span className="truncate max-w-full">{item.label}</span>
-                {item.label === 'Alerts' && unreadCount > 0 && (
-                  <span className="absolute top-1 right-1/2 translate-x-3 bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
                 {isActive && <span className="absolute top-0 inset-x-3 h-0.5 bg-primary rounded-b-full" />}
               </Link>
             </li>
           );
         })}
+        <li>
+          <button
+            onClick={onOpenMore}
+            className="relative w-full flex flex-col items-center justify-center gap-0.5 py-2 px-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="More navigation options"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+            <span className="truncate max-w-full">More</span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1/2 translate-x-3 bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+        </li>
       </ul>
     </nav>
   );

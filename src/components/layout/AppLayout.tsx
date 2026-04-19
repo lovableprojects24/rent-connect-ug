@@ -55,7 +55,7 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <MobileBottomNav />
+      <MobileBottomNav onOpenMore={() => setSidebarOpen(true)} />
     </div>
   );
 }
