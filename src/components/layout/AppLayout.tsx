@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu, User } from 'lucide-react';
 import AppSidebar from './AppSidebar';
+import MobileBottomNav from './MobileBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AppLayout() {
@@ -45,12 +46,14 @@ export default function AppLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 pb-20 lg:pb-6">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </main>
       </div>
+
+      <MobileBottomNav />
     </div>
   );
 }
