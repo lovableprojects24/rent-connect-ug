@@ -188,6 +188,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     setSelfieFile(null);
   };
 
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
         <Loader2 className="w-4 h-4 animate-spin" /> Loading KYC progress…
