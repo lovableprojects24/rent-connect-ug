@@ -24,23 +24,32 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!idNumber.trim()) {
-      toast.error('ID number is required');
+    if (!idNumber.trim() || idNumber.trim().length < 5) {
+      toast.error('A valid ID number is required (at least 5 characters)');
+      return;
+    }
+    if (!expiryDate) {
+      toast.error('Expiry date is required');
       return;
     }
     if (!frontFile) {
       toast.error('Front of ID document is required');
       return;
     }
+    if (!backFile) {
+      toast.error('Back of ID document is required');
+      return;
+    }
+    if (!selfieFile) {
+      toast.error('A selfie photo is required');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const frontPath = await kycService.uploadDocument(userId, frontFile, 'front');
-      let backPath: string | undefined;
-      let selfiePath: string | undefined;
-
-      if (backFile) backPath = await kycService.uploadDocument(userId, backFile, 'back');
-      if (selfieFile) selfiePath = await kycService.uploadDocument(userId, selfieFile, 'selfie');
+      const backPath = await kycService.uploadDocument(userId, backFile, 'back');
+      const selfiePath = await kycService.uploadDocument(userId, selfieFile, 'selfie');
 
       await kycService.submit({
         user_id: userId,
@@ -49,7 +58,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         id_front_url: frontPath,
         id_back_url: backPath,
         selfie_url: selfiePath,
-        expiry_date: expiryDate || undefined,
+        expiry_date: expiryDate,
       });
 
       toast.success('KYC documents submitted for verification');
@@ -89,11 +98,12 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
       </div>
 
       <div className="space-y-2">
-        <Label>Expiry Date (optional)</Label>
+        <Label>Expiry Date *</Label>
         <Input
           type="date"
           value={expiryDate}
           onChange={(e) => setExpiryDate(e.target.value)}
+          required
         />
       </div>
 
@@ -106,16 +116,18 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           required
         />
         <FileUploadBox
-          label="ID Back"
+          label="ID Back *"
           icon={FileText}
           file={backFile}
           onFileChange={setBackFile}
+          required
         />
         <FileUploadBox
-          label="Selfie"
+          label="Selfie *"
           icon={Camera}
           file={selfieFile}
           onFileChange={setSelfieFile}
+          required
         />
       </div>
 
