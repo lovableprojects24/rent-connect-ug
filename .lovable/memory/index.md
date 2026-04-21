@@ -10,3 +10,4 @@ Design: warm green (#2d8f4e) primary, gold secondary, Plus Jakarta Sans headings
 - [Onboarding wizard](mem://features/onboarding) — 6-step admin onboarding flow
 - [KYC verification](mem://features/kyc) — ID document verification for landlords and tenants
 - [Pesapal integration](mem://features/pesapal) — Payment gateway for rent collection
+- [Landlord isolation](mem://features/landlord-isolation) — RLS scopes landlords to own properties/tenants/payments only
