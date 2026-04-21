@@ -3,14 +3,25 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase
 
 export type Payment = Tables<'payments'>;
 
+export interface PaymentWithDetails extends Payment {
+  property_name: string | null;
+  tenant_name: string | null;
+}
+
 export const paymentsService = {
-  async getAll() {
+  async getAll(): Promise<PaymentWithDetails[]> {
     const { data, error } = await supabase
       .from('payments')
-      .select('*')
+      .select('*, properties(name), tenants(full_name)')
       .order('payment_date', { ascending: false });
     if (error) throw error;
-    return data;
+    return (data || []).map((row: any) => ({
+      ...row,
+      property_name: row.properties?.name ?? null,
+      tenant_name: row.tenants?.full_name ?? null,
+      properties: undefined,
+      tenants: undefined,
+    }));
   },
 
   async getByTenantId(tenantId: string) {
