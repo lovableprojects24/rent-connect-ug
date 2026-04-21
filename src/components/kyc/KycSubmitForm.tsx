@@ -102,6 +102,10 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting || cancelledRef.current) return;
+    if (!acquireUploadLock(userId)) {
+      toast.error('A KYC upload is already in progress — check your other tabs.');
+      return;
+    }
     if (!idNumber.trim() || idNumber.trim().length < 5) {
       toast.error('A valid ID number is required (at least 5 characters)');
       return;
