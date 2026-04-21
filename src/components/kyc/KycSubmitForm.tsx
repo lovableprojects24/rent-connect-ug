@@ -14,6 +14,29 @@ interface KycSubmitFormProps {
   onCancel?: () => void;
 }
 
+const KYC_UPLOAD_LOCK_KEY = 'kyc_upload_lock';
+const LOCK_TTL_MS = 5 * 60 * 1000; // 5 min stale-lock timeout
+
+function acquireUploadLock(userId: string): boolean {
+  try {
+    const raw = localStorage.getItem(KYC_UPLOAD_LOCK_KEY);
+    if (raw) {
+      const lock = JSON.parse(raw);
+      if (lock.userId === userId && Date.now() - lock.ts < LOCK_TTL_MS) {
+        return false; // already locked by this user in another tab
+      }
+    }
+    localStorage.setItem(KYC_UPLOAD_LOCK_KEY, JSON.stringify({ userId, ts: Date.now() }));
+    return true;
+  } catch {
+    return true; // fail-open if storage unavailable
+  }
+}
+
+function releaseUploadLock() {
+  try { localStorage.removeItem(KYC_UPLOAD_LOCK_KEY); } catch {}
+}
+
 type FileUploadStatus = 'idle' | 'queued' | 'uploading' | 'done' | 'failed';
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
