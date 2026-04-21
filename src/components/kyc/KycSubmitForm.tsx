@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Camera, Upload, FileText } from 'lucide-react';
+import { Camera, Upload, FileText, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +22,8 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const [backFile, setBackFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadLabel, setUploadLabel] = useState('');
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idNumber.trim() || idNumber.trim().length < 5) {
@@ -46,10 +48,22 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     }
 
     setSubmitting(true);
+    setUploadProgress(0);
     try {
+      setUploadLabel('Uploading ID front…');
+      setUploadProgress(10);
       const frontPath = await kycService.uploadDocument(userId, frontFile, 'front');
+
+      setUploadLabel('Uploading ID back…');
+      setUploadProgress(35);
       const backPath = await kycService.uploadDocument(userId, backFile, 'back');
+
+      setUploadLabel('Uploading selfie…');
+      setUploadProgress(60);
       const selfiePath = await kycService.uploadDocument(userId, selfieFile, 'selfie');
+
+      setUploadLabel('Submitting KYC…');
+      setUploadProgress(85);
 
       await kycService.submit({
         user_id: userId,
@@ -61,12 +75,15 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         expiry_date: expiryDate,
       });
 
+      setUploadProgress(100);
       toast.success('KYC documents submitted for verification');
       onSuccess();
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit KYC');
     } finally {
       setSubmitting(false);
+      setUploadProgress(0);
+      setUploadLabel('');
     }
   };
 
@@ -135,14 +152,28 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         Upload clear photos of the ID document. A selfie helps verify the person matches the ID photo.
       </p>
 
+      {submitting && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span>{uploadLabel}</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+        </div>
+      )}
+
       <div className="flex gap-2">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={submitting}>
             Cancel
           </Button>
         )}
         <Button type="submit" disabled={submitting} className="flex-1">
-          {submitting ? 'Uploading…' : 'Submit KYC'}
+          {submitting ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" />Uploading…</>
+          ) : (
+            'Submit KYC'
+          )}
         </Button>
       </div>
     </form>
