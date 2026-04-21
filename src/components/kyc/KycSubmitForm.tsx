@@ -230,6 +230,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         toast.error(msg, { description: 'Your progress has been saved. You can retry from where you left off.' });
       }
     } finally {
+      releaseUploadLock();
       setSubmitting(false);
       setUploadProgress(0);
       setUploadLabel('');
