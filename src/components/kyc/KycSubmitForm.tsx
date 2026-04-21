@@ -14,6 +14,29 @@ interface KycSubmitFormProps {
   onCancel?: () => void;
 }
 
+const KYC_UPLOAD_LOCK_KEY = 'kyc_upload_lock';
+const LOCK_TTL_MS = 5 * 60 * 1000; // 5 min stale-lock timeout
+
+function acquireUploadLock(userId: string): boolean {
+  try {
+    const raw = localStorage.getItem(KYC_UPLOAD_LOCK_KEY);
+    if (raw) {
+      const lock = JSON.parse(raw);
+      if (lock.userId === userId && Date.now() - lock.ts < LOCK_TTL_MS) {
+        return false; // already locked by this user in another tab
+      }
+    }
+    localStorage.setItem(KYC_UPLOAD_LOCK_KEY, JSON.stringify({ userId, ts: Date.now() }));
+    return true;
+  } catch {
+    return true; // fail-open if storage unavailable
+  }
+}
+
+function releaseUploadLock() {
+  try { localStorage.removeItem(KYC_UPLOAD_LOCK_KEY); } catch {}
+}
+
 type FileUploadStatus = 'idle' | 'queued' | 'uploading' | 'done' | 'failed';
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
@@ -79,6 +102,10 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting || cancelledRef.current) return;
+    if (!acquireUploadLock(userId)) {
+      toast.error('A KYC upload is already in progress — check your other tabs.');
+      return;
+    }
     if (!idNumber.trim() || idNumber.trim().length < 5) {
       toast.error('A valid ID number is required (at least 5 characters)');
       return;
@@ -203,6 +230,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         toast.error(msg, { description: 'Your progress has been saved. You can retry from where you left off.' });
       }
     } finally {
+      releaseUploadLock();
       setSubmitting(false);
       setUploadProgress(0);
       setUploadLabel('');
