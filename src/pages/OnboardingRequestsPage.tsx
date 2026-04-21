@@ -256,6 +256,23 @@ export default function OnboardingRequestsPage() {
           </div>
         </div>
       )}
+
+      {/* KYC Review Dialog */}
+      {kycReviewUserId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setKycReviewId(null); setKycReviewUserId(null); }}>
+          <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading font-semibold text-lg">KYC Review</h2>
+              <Button variant="ghost" size="sm" onClick={() => { setKycReviewId(null); setKycReviewUserId(null); }}>✕</Button>
+            </div>
+            <KycReviewPanel
+              userId={kycReviewUserId}
+              reviewerId={user?.id || ''}
+              onUpdate={() => { setKycReviewId(null); setKycReviewUserId(null); }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
