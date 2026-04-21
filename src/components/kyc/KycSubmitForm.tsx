@@ -264,6 +264,15 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
             <span>{uploadLabel}</span>
           </div>
           <Progress value={uploadProgress} className="h-2" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCancelUpload}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5 w-full"
+          >
+            <XCircle className="w-4 h-4" /> Cancel Upload
+          </Button>
         </div>
       )}
 
