@@ -76,27 +76,30 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     try {
       setUploadLabel('Uploading ID front…');
       setUploadProgress(10);
-      const frontPath = await withRetry(() =>
-        kycService.uploadDocument(userId, frontFile, 'front')
+      const frontPath = await withRetry(
+        () => kycService.uploadDocument(userId, frontFile, 'front'),
+        'ID front upload'
       ).catch((err) => { throw new Error(`ID front upload failed: ${err.message}`); });
 
       setUploadLabel('Uploading ID back…');
       setUploadProgress(35);
-      const backPath = await withRetry(() =>
-        kycService.uploadDocument(userId, backFile, 'back')
+      const backPath = await withRetry(
+        () => kycService.uploadDocument(userId, backFile, 'back'),
+        'ID back upload'
       ).catch((err) => { throw new Error(`ID back upload failed: ${err.message}`); });
 
       setUploadLabel('Uploading selfie…');
       setUploadProgress(60);
-      const selfiePath = await withRetry(() =>
-        kycService.uploadDocument(userId, selfieFile, 'selfie')
+      const selfiePath = await withRetry(
+        () => kycService.uploadDocument(userId, selfieFile, 'selfie'),
+        'Selfie upload'
       ).catch((err) => { throw new Error(`Selfie upload failed: ${err.message}`); });
 
       setUploadLabel('Submitting KYC…');
       setUploadProgress(85);
 
-      await withRetry(() =>
-        kycService.submit({
+      await withRetry(
+        () => kycService.submit({
           user_id: userId,
           id_type: idType,
           id_number: idNumber.trim(),
@@ -104,7 +107,8 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           id_back_url: backPath,
           selfie_url: selfiePath,
           expiry_date: expiryDate,
-        })
+        }),
+        'KYC submission'
       ).catch((err) => { throw new Error(`KYC submission failed: ${err.message}`); });
 
       setUploadProgress(100);
