@@ -78,6 +78,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || cancelledRef.current) return;
     if (!idNumber.trim() || idNumber.trim().length < 5) {
       toast.error('A valid ID number is required (at least 5 characters)');
       return;
