@@ -14,10 +14,19 @@ interface KycSubmitFormProps {
   onCancel?: () => void;
 }
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 1000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out — please check your connection and try again`)), ms)
+    ),
+  ]);
+}
+
+async function withRetry<T>(fn: () => Promise<T>, label: string, retries = 2, delayMs = 1000, timeoutMs = 30000): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      return await fn();
+      return await withTimeout(fn(), timeoutMs, label);
     } catch (err) {
       if (attempt === retries) throw err;
       await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
@@ -67,27 +76,30 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     try {
       setUploadLabel('Uploading ID front…');
       setUploadProgress(10);
-      const frontPath = await withRetry(() =>
-        kycService.uploadDocument(userId, frontFile, 'front')
+      const frontPath = await withRetry(
+        () => kycService.uploadDocument(userId, frontFile, 'front'),
+        'ID front upload'
       ).catch((err) => { throw new Error(`ID front upload failed: ${err.message}`); });
 
       setUploadLabel('Uploading ID back…');
       setUploadProgress(35);
-      const backPath = await withRetry(() =>
-        kycService.uploadDocument(userId, backFile, 'back')
+      const backPath = await withRetry(
+        () => kycService.uploadDocument(userId, backFile, 'back'),
+        'ID back upload'
       ).catch((err) => { throw new Error(`ID back upload failed: ${err.message}`); });
 
       setUploadLabel('Uploading selfie…');
       setUploadProgress(60);
-      const selfiePath = await withRetry(() =>
-        kycService.uploadDocument(userId, selfieFile, 'selfie')
+      const selfiePath = await withRetry(
+        () => kycService.uploadDocument(userId, selfieFile, 'selfie'),
+        'Selfie upload'
       ).catch((err) => { throw new Error(`Selfie upload failed: ${err.message}`); });
 
       setUploadLabel('Submitting KYC…');
       setUploadProgress(85);
 
-      await withRetry(() =>
-        kycService.submit({
+      await withRetry(
+        () => kycService.submit({
           user_id: userId,
           id_type: idType,
           id_number: idNumber.trim(),
@@ -95,7 +107,8 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           id_back_url: backPath,
           selfie_url: selfiePath,
           expiry_date: expiryDate,
-        })
+        }),
+        'KYC submission'
       ).catch((err) => { throw new Error(`KYC submission failed: ${err.message}`); });
 
       setUploadProgress(100);
