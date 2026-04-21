@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ interface KycSubmitFormProps {
   onSuccess: () => void;
   onCancel?: () => void;
 }
+
+type FileUploadStatus = 'idle' | 'queued' | 'uploading' | 'done' | 'failed';
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -48,6 +50,11 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const [failedStep, setFailedStep] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const cancelledRef = useRef(false);
+
+  // Per-file upload status
+  const [frontStatus, setFrontStatus] = useState<FileUploadStatus>('idle');
+  const [backStatus, setBackStatus] = useState<FileUploadStatus>('idle');
+  const [selfieStatus, setSelfieStatus] = useState<FileUploadStatus>('idle');
 
   // Server-side saved paths (already uploaded)
   const [savedFront, setSavedFront] = useState<string | null>(null);
@@ -97,6 +104,11 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     setFailedStep(null);
     cancelledRef.current = false;
 
+    // Set initial per-file statuses
+    setFrontStatus(frontFile ? 'queued' : (savedFront ? 'done' : 'idle'));
+    setBackStatus(backFile ? 'queued' : (savedBack ? 'done' : 'idle'));
+    setSelfieStatus(selfieFile ? 'queued' : (savedSelfie ? 'done' : 'idle'));
+
     let frontPath = savedFront;
     let backPath = savedBack;
     let selfiePath = savedSelfie;
@@ -106,9 +118,10 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     };
 
     try {
-      // Upload front (skip if already saved and no new file)
+      // Upload front
       if (frontFile) {
         checkCancelled();
+        setFrontStatus('uploading');
         setUploadLabel('Uploading ID front…');
         setUploadProgress(10);
         frontPath = await withRetry(
@@ -117,11 +130,13 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         );
         await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), id_front_url: frontPath, expiry_date: expiryDate });
         setSavedFront(frontPath);
+        setFrontStatus('done');
       }
 
       // Upload back
       if (backFile) {
         checkCancelled();
+        setBackStatus('uploading');
         setUploadLabel('Uploading ID back…');
         setUploadProgress(35);
         backPath = await withRetry(
@@ -130,11 +145,13 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         );
         await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), id_back_url: backPath, expiry_date: expiryDate });
         setSavedBack(backPath);
+        setBackStatus('done');
       }
 
       // Upload selfie
       if (selfieFile) {
         checkCancelled();
+        setSelfieStatus('uploading');
         setUploadLabel('Uploading selfie…');
         setUploadProgress(60);
         selfiePath = await withRetry(
@@ -143,6 +160,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         );
         await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), selfie_url: selfiePath, expiry_date: expiryDate });
         setSavedSelfie(selfiePath);
+        setSelfieStatus('done');
       }
 
       // Final submit
@@ -170,6 +188,15 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
       if (error.message === '__cancelled__') {
         toast.info('Upload cancelled. Already-uploaded files have been saved.');
       } else {
+        // Mark the currently-uploading file as failed
+        setFrontStatus((s) => s === 'uploading' ? 'failed' : s);
+        setBackStatus((s) => s === 'uploading' ? 'failed' : s);
+        setSelfieStatus((s) => s === 'uploading' ? 'failed' : s);
+        // Mark remaining queued files back to idle
+        setFrontStatus((s) => s === 'queued' ? 'idle' : s);
+        setBackStatus((s) => s === 'queued' ? 'idle' : s);
+        setSelfieStatus((s) => s === 'queued' ? 'idle' : s);
+
         const msg = error.message || 'Failed to submit KYC';
         setFailedStep(msg);
         toast.error(msg, { description: 'Your progress has been saved. You can retry from where you left off.' });
@@ -241,6 +268,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           onFileChange={setFrontFile}
           savedPath={savedFront}
           required={!savedFront}
+          uploadStatus={submitting ? frontStatus : undefined}
         />
         <FileUploadBox
           label="ID Back *"
@@ -249,6 +277,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           onFileChange={setBackFile}
           savedPath={savedBack}
           required={!savedBack}
+          uploadStatus={submitting ? backStatus : undefined}
         />
         <FileUploadBox
           label="Selfie *"
@@ -257,6 +286,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           onFileChange={setSelfieFile}
           savedPath={savedSelfie}
           required={!savedSelfie}
+          uploadStatus={submitting ? selfieStatus : undefined}
         />
       </div>
 
@@ -312,6 +342,14 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   );
 }
 
+const STATUS_CONFIG: Record<FileUploadStatus, { icon: React.ElementType; label: string; color: string } | null> = {
+  idle: null,
+  queued: { icon: Clock, label: 'Queued', color: 'text-muted-foreground' },
+  uploading: { icon: Loader2, label: 'Uploading…', color: 'text-primary' },
+  done: { icon: CheckCircle2, label: 'Done', color: 'text-primary' },
+  failed: { icon: AlertCircle, label: 'Failed', color: 'text-destructive' },
+};
+
 function FileUploadBox({
   label,
   icon: Icon,
@@ -319,6 +357,7 @@ function FileUploadBox({
   onFileChange,
   savedPath,
   required,
+  uploadStatus,
 }: {
   label: string;
   icon: typeof Upload;
@@ -326,15 +365,22 @@ function FileUploadBox({
   onFileChange: (f: File | null) => void;
   savedPath?: string | null;
   required?: boolean;
+  uploadStatus?: FileUploadStatus;
 }) {
   const hasSaved = !!savedPath && !file;
+  const statusCfg = uploadStatus ? STATUS_CONFIG[uploadStatus] : null;
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs">{label}</Label>
       <label className={`flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-        hasSaved
-          ? 'border-primary/40 bg-primary/5'
-          : 'border-border hover:border-primary/40 hover:bg-primary/5'
+        uploadStatus === 'failed'
+          ? 'border-destructive/40 bg-destructive/5'
+          : uploadStatus === 'uploading'
+            ? 'border-primary/60 bg-primary/10'
+            : hasSaved
+              ? 'border-primary/40 bg-primary/5'
+              : 'border-border hover:border-primary/40 hover:bg-primary/5'
       }`}>
         {file ? (
           <div className="text-center px-2">
@@ -361,6 +407,12 @@ function FileUploadBox({
           onChange={(e) => onFileChange(e.target.files?.[0] || null)}
         />
       </label>
+      {statusCfg && (
+        <div className={`flex items-center gap-1 text-[11px] ${statusCfg.color}`}>
+          <statusCfg.icon className={`w-3 h-3 ${uploadStatus === 'uploading' ? 'animate-spin' : ''}`} />
+          <span>{statusCfg.label}</span>
+        </div>
+      )}
     </div>
   );
 }
