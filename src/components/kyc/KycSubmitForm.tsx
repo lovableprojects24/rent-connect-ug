@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Upload, FileText, Loader2 } from 'lucide-react';
+import { Camera, Upload, FileText, Loader2, RefreshCw } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,18 @@ interface KycSubmitFormProps {
   onCancel?: () => void;
 }
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 1000): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
+    }
+  }
+  throw new Error('Unexpected retry failure');
+}
+
 export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmitFormProps) {
   const [idType, setIdType] = useState<IdDocumentType>('national_id');
   const [idNumber, setIdNumber] = useState('');
@@ -24,6 +36,8 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadLabel, setUploadLabel] = useState('');
+  const [failedStep, setFailedStep] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idNumber.trim() || idNumber.trim().length < 5) {
@@ -49,37 +63,48 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
 
     setSubmitting(true);
     setUploadProgress(0);
+    setFailedStep(null);
     try {
       setUploadLabel('Uploading ID front…');
       setUploadProgress(10);
-      const frontPath = await kycService.uploadDocument(userId, frontFile, 'front');
+      const frontPath = await withRetry(() =>
+        kycService.uploadDocument(userId, frontFile, 'front')
+      ).catch((err) => { throw new Error(`ID front upload failed: ${err.message}`); });
 
       setUploadLabel('Uploading ID back…');
       setUploadProgress(35);
-      const backPath = await kycService.uploadDocument(userId, backFile, 'back');
+      const backPath = await withRetry(() =>
+        kycService.uploadDocument(userId, backFile, 'back')
+      ).catch((err) => { throw new Error(`ID back upload failed: ${err.message}`); });
 
       setUploadLabel('Uploading selfie…');
       setUploadProgress(60);
-      const selfiePath = await kycService.uploadDocument(userId, selfieFile, 'selfie');
+      const selfiePath = await withRetry(() =>
+        kycService.uploadDocument(userId, selfieFile, 'selfie')
+      ).catch((err) => { throw new Error(`Selfie upload failed: ${err.message}`); });
 
       setUploadLabel('Submitting KYC…');
       setUploadProgress(85);
 
-      await kycService.submit({
-        user_id: userId,
-        id_type: idType,
-        id_number: idNumber.trim(),
-        id_front_url: frontPath,
-        id_back_url: backPath,
-        selfie_url: selfiePath,
-        expiry_date: expiryDate,
-      });
+      await withRetry(() =>
+        kycService.submit({
+          user_id: userId,
+          id_type: idType,
+          id_number: idNumber.trim(),
+          id_front_url: frontPath,
+          id_back_url: backPath,
+          selfie_url: selfiePath,
+          expiry_date: expiryDate,
+        })
+      ).catch((err) => { throw new Error(`KYC submission failed: ${err.message}`); });
 
       setUploadProgress(100);
       toast.success('KYC documents submitted for verification');
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit KYC');
+      const msg = error.message || 'Failed to submit KYC';
+      setFailedStep(msg);
+      toast.error(msg, { description: 'Check your connection and try again.' });
     } finally {
       setSubmitting(false);
       setUploadProgress(0);
@@ -162,6 +187,15 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         </div>
       )}
 
+      {failedStep && !submitting && (
+        <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 space-y-2">
+          <p className="text-xs text-destructive font-medium">{failedStep}</p>
+          <p className="text-xs text-muted-foreground">
+            Each upload is retried automatically up to 2 times. If it still fails, check your internet connection and try again.
+          </p>
+        </div>
+      )}
+
       <div className="flex gap-2">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={submitting}>
@@ -171,6 +205,8 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         <Button type="submit" disabled={submitting} className="flex-1">
           {submitting ? (
             <><Loader2 className="w-4 h-4 animate-spin mr-2" />Uploading…</>
+          ) : failedStep ? (
+            <><RefreshCw className="w-4 h-4 mr-2" />Retry</>
           ) : (
             'Submit KYC'
           )}
