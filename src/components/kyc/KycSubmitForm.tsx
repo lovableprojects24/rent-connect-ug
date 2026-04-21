@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const [uploadLabel, setUploadLabel] = useState('');
   const [failedStep, setFailedStep] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const cancelledRef = useRef(false);
 
   // Server-side saved paths (already uploaded)
   const [savedFront, setSavedFront] = useState<string | null>(null);
@@ -94,27 +95,33 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     setSubmitting(true);
     setUploadProgress(0);
     setFailedStep(null);
+    cancelledRef.current = false;
 
     let frontPath = savedFront;
     let backPath = savedBack;
     let selfiePath = savedSelfie;
 
+    const checkCancelled = () => {
+      if (cancelledRef.current) throw new Error('__cancelled__');
+    };
+
     try {
       // Upload front (skip if already saved and no new file)
       if (frontFile) {
+        checkCancelled();
         setUploadLabel('Uploading ID front…');
         setUploadProgress(10);
         frontPath = await withRetry(
           () => kycService.uploadDocument(userId, frontFile, 'front'),
           'ID front upload'
         );
-        // Persist immediately
         await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), id_front_url: frontPath, expiry_date: expiryDate });
         setSavedFront(frontPath);
       }
 
       // Upload back
       if (backFile) {
+        checkCancelled();
         setUploadLabel('Uploading ID back…');
         setUploadProgress(35);
         backPath = await withRetry(
@@ -127,6 +134,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
 
       // Upload selfie
       if (selfieFile) {
+        checkCancelled();
         setUploadLabel('Uploading selfie…');
         setUploadProgress(60);
         selfiePath = await withRetry(
@@ -137,7 +145,8 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         setSavedSelfie(selfiePath);
       }
 
-      // Final submit with status = pending
+      // Final submit
+      checkCancelled();
       setUploadLabel('Submitting KYC…');
       setUploadProgress(85);
 
@@ -158,14 +167,25 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
       toast.success('KYC documents submitted for verification');
       onSuccess();
     } catch (error: any) {
-      const msg = error.message || 'Failed to submit KYC';
-      setFailedStep(msg);
-      toast.error(msg, { description: 'Your progress has been saved. You can retry from where you left off.' });
+      if (error.message === '__cancelled__') {
+        toast.info('Upload cancelled. Already-uploaded files have been saved.');
+      } else {
+        const msg = error.message || 'Failed to submit KYC';
+        setFailedStep(msg);
+        toast.error(msg, { description: 'Your progress has been saved. You can retry from where you left off.' });
+      }
     } finally {
       setSubmitting(false);
       setUploadProgress(0);
       setUploadLabel('');
     }
+  };
+
+  const handleCancelUpload = () => {
+    cancelledRef.current = true;
+    setFrontFile(null);
+    setBackFile(null);
+    setSelfieFile(null);
   };
 
   if (loading) {
@@ -251,6 +271,15 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
             <span>{uploadLabel}</span>
           </div>
           <Progress value={uploadProgress} className="h-2" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCancelUpload}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5 w-full"
+          >
+            <XCircle className="w-4 h-4" /> Cancel Upload
+          </Button>
         </div>
       )}
 
