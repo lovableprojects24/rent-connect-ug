@@ -41,6 +41,60 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_verifications: {
+        Row: {
+          created_at: string
+          expiry_date: string | null
+          id: string
+          id_back_url: string | null
+          id_front_url: string | null
+          id_number: string
+          id_type: Database["public"]["Enums"]["id_document_type"]
+          notes: string | null
+          rejection_reason: string | null
+          selfie_url: string | null
+          status: Database["public"]["Enums"]["kyc_status"]
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
+          id_number: string
+          id_type: Database["public"]["Enums"]["id_document_type"]
+          notes?: string | null
+          rejection_reason?: string | null
+          selfie_url?: string | null
+          status?: Database["public"]["Enums"]["kyc_status"]
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
+          id_number?: string
+          id_type?: Database["public"]["Enums"]["id_document_type"]
+          notes?: string | null
+          rejection_reason?: string | null
+          selfie_url?: string | null
+          status?: Database["public"]["Enums"]["kyc_status"]
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       leases: {
         Row: {
           created_at: string
@@ -756,6 +810,13 @@ export type Database = {
         | "finance"
         | "manager"
       application_status: "pending" | "approved" | "rejected" | "cancelled"
+      id_document_type:
+        | "national_id"
+        | "passport"
+        | "drivers_license"
+        | "voter_id"
+        | "work_permit"
+      kyc_status: "pending" | "verified" | "rejected" | "expired"
       lease_status: "active" | "inactive" | "pending" | "terminated"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "open" | "in_progress" | "resolved" | "closed"
@@ -905,6 +966,14 @@ export const Constants = {
     Enums: {
       app_role: ["landlord", "tenant", "agent", "admin", "finance", "manager"],
       application_status: ["pending", "approved", "rejected", "cancelled"],
+      id_document_type: [
+        "national_id",
+        "passport",
+        "drivers_license",
+        "voter_id",
+        "work_permit",
+      ],
+      kyc_status: ["pending", "verified", "rejected", "expired"],
       lease_status: ["active", "inactive", "pending", "terminated"],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["open", "in_progress", "resolved", "closed"],
