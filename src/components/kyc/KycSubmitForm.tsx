@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const [uploadLabel, setUploadLabel] = useState('');
   const [failedStep, setFailedStep] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const cancelledRef = useRef(false);
 
   // Server-side saved paths (already uploaded)
   const [savedFront, setSavedFront] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     setSubmitting(true);
     setUploadProgress(0);
     setFailedStep(null);
+    cancelledRef.current = false;
 
     let frontPath = savedFront;
     let backPath = savedBack;
