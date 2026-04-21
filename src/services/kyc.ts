@@ -60,6 +60,27 @@ export const kycService = {
     return data.signedUrl;
   },
 
+  async saveDraft(params: {
+    user_id: string;
+    id_type?: IdDocumentType;
+    id_number?: string;
+    id_front_url?: string;
+    id_back_url?: string;
+    selfie_url?: string;
+    expiry_date?: string;
+  }): Promise<KycVerification> {
+    const clean = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== undefined)
+    );
+    const { data, error } = await supabase
+      .from('kyc_verifications')
+      .upsert(clean as any, { onConflict: 'user_id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as unknown as KycVerification;
+  },
+
   async submit(params: {
     user_id: string;
     id_type: IdDocumentType;

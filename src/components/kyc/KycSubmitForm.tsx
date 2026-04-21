@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { Camera, Upload, FileText, Loader2, RefreshCw } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Camera, Upload, FileText, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { kycService, ID_TYPE_LABELS, type IdDocumentType } from '@/services/kyc';
+import { kycService, ID_TYPE_LABELS, type IdDocumentType, type KycVerification } from '@/services/kyc';
 
 interface KycSubmitFormProps {
   userId: string;
@@ -46,6 +46,27 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadLabel, setUploadLabel] = useState('');
   const [failedStep, setFailedStep] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Server-side saved paths (already uploaded)
+  const [savedFront, setSavedFront] = useState<string | null>(null);
+  const [savedBack, setSavedBack] = useState<string | null>(null);
+  const [savedSelfie, setSavedSelfie] = useState<string | null>(null);
+
+  // Load existing draft on mount
+  useEffect(() => {
+    kycService.getByUserId(userId).then((draft) => {
+      if (draft && draft.status !== 'verified') {
+        setIdType(draft.id_type);
+        setIdNumber(draft.id_number || '');
+        setExpiryDate(draft.expiry_date || '');
+        setSavedFront(draft.id_front_url);
+        setSavedBack(draft.id_back_url);
+        setSavedSelfie(draft.selfie_url);
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,15 +78,15 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
       toast.error('Expiry date is required');
       return;
     }
-    if (!frontFile) {
+    if (!frontFile && !savedFront) {
       toast.error('Front of ID document is required');
       return;
     }
-    if (!backFile) {
+    if (!backFile && !savedBack) {
       toast.error('Back of ID document is required');
       return;
     }
-    if (!selfieFile) {
+    if (!selfieFile && !savedSelfie) {
       toast.error('A selfie photo is required');
       return;
     }
@@ -73,28 +94,50 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     setSubmitting(true);
     setUploadProgress(0);
     setFailedStep(null);
+
+    let frontPath = savedFront;
+    let backPath = savedBack;
+    let selfiePath = savedSelfie;
+
     try {
-      setUploadLabel('Uploading ID front…');
-      setUploadProgress(10);
-      const frontPath = await withRetry(
-        () => kycService.uploadDocument(userId, frontFile, 'front'),
-        'ID front upload'
-      ).catch((err) => { throw new Error(`ID front upload failed: ${err.message}`); });
+      // Upload front (skip if already saved and no new file)
+      if (frontFile) {
+        setUploadLabel('Uploading ID front…');
+        setUploadProgress(10);
+        frontPath = await withRetry(
+          () => kycService.uploadDocument(userId, frontFile, 'front'),
+          'ID front upload'
+        );
+        // Persist immediately
+        await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), id_front_url: frontPath, expiry_date: expiryDate });
+        setSavedFront(frontPath);
+      }
 
-      setUploadLabel('Uploading ID back…');
-      setUploadProgress(35);
-      const backPath = await withRetry(
-        () => kycService.uploadDocument(userId, backFile, 'back'),
-        'ID back upload'
-      ).catch((err) => { throw new Error(`ID back upload failed: ${err.message}`); });
+      // Upload back
+      if (backFile) {
+        setUploadLabel('Uploading ID back…');
+        setUploadProgress(35);
+        backPath = await withRetry(
+          () => kycService.uploadDocument(userId, backFile, 'back'),
+          'ID back upload'
+        );
+        await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), id_back_url: backPath, expiry_date: expiryDate });
+        setSavedBack(backPath);
+      }
 
-      setUploadLabel('Uploading selfie…');
-      setUploadProgress(60);
-      const selfiePath = await withRetry(
-        () => kycService.uploadDocument(userId, selfieFile, 'selfie'),
-        'Selfie upload'
-      ).catch((err) => { throw new Error(`Selfie upload failed: ${err.message}`); });
+      // Upload selfie
+      if (selfieFile) {
+        setUploadLabel('Uploading selfie…');
+        setUploadProgress(60);
+        selfiePath = await withRetry(
+          () => kycService.uploadDocument(userId, selfieFile, 'selfie'),
+          'Selfie upload'
+        );
+        await kycService.saveDraft({ user_id: userId, id_type: idType, id_number: idNumber.trim(), selfie_url: selfiePath, expiry_date: expiryDate });
+        setSavedSelfie(selfiePath);
+      }
 
+      // Final submit with status = pending
       setUploadLabel('Submitting KYC…');
       setUploadProgress(85);
 
@@ -103,13 +146,13 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           user_id: userId,
           id_type: idType,
           id_number: idNumber.trim(),
-          id_front_url: frontPath,
-          id_back_url: backPath,
-          selfie_url: selfiePath,
+          id_front_url: frontPath!,
+          id_back_url: backPath!,
+          selfie_url: selfiePath!,
           expiry_date: expiryDate,
         }),
         'KYC submission'
-      ).catch((err) => { throw new Error(`KYC submission failed: ${err.message}`); });
+      );
 
       setUploadProgress(100);
       toast.success('KYC documents submitted for verification');
@@ -117,13 +160,21 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
     } catch (error: any) {
       const msg = error.message || 'Failed to submit KYC';
       setFailedStep(msg);
-      toast.error(msg, { description: 'Check your connection and try again.' });
+      toast.error(msg, { description: 'Your progress has been saved. You can retry from where you left off.' });
     } finally {
       setSubmitting(false);
       setUploadProgress(0);
       setUploadLabel('');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
+        <Loader2 className="w-4 h-4 animate-spin" /> Loading KYC progress…
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -168,26 +219,29 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
           icon={FileText}
           file={frontFile}
           onFileChange={setFrontFile}
-          required
+          savedPath={savedFront}
+          required={!savedFront}
         />
         <FileUploadBox
           label="ID Back *"
           icon={FileText}
           file={backFile}
           onFileChange={setBackFile}
-          required
+          savedPath={savedBack}
+          required={!savedBack}
         />
         <FileUploadBox
           label="Selfie *"
           icon={Camera}
           file={selfieFile}
           onFileChange={setSelfieFile}
-          required
+          savedPath={savedSelfie}
+          required={!savedSelfie}
         />
       </div>
 
       <p className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2.5">
-        Upload clear photos of the ID document. A selfie helps verify the person matches the ID photo.
+        Upload clear photos of the ID document. Progress is saved automatically — you can resume if your connection drops.
       </p>
 
       {submitting && (
@@ -204,7 +258,7 @@ export default function KycSubmitForm({ userId, onSuccess, onCancel }: KycSubmit
         <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 space-y-2">
           <p className="text-xs text-destructive font-medium">{failedStep}</p>
           <p className="text-xs text-muted-foreground">
-            Each upload is retried automatically up to 2 times. If it still fails, check your internet connection and try again.
+            Your uploaded files have been saved. Only remaining uploads will be retried.
           </p>
         </div>
       )}
@@ -234,22 +288,35 @@ function FileUploadBox({
   icon: Icon,
   file,
   onFileChange,
+  savedPath,
   required,
 }: {
   label: string;
   icon: typeof Upload;
   file: File | null;
   onFileChange: (f: File | null) => void;
+  savedPath?: string | null;
   required?: boolean;
 }) {
+  const hasSaved = !!savedPath && !file;
   return (
     <div className="space-y-1.5">
       <Label className="text-xs">{label}</Label>
-      <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
+      <label className={`flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+        hasSaved
+          ? 'border-primary/40 bg-primary/5'
+          : 'border-border hover:border-primary/40 hover:bg-primary/5'
+      }`}>
         {file ? (
           <div className="text-center px-2">
             <Icon className="w-5 h-5 text-primary mx-auto mb-1" />
             <p className="text-xs text-foreground truncate max-w-full">{file.name}</p>
+          </div>
+        ) : hasSaved ? (
+          <div className="text-center px-2">
+            <CheckCircle2 className="w-5 h-5 text-primary mx-auto mb-1" />
+            <p className="text-xs text-primary font-medium">Uploaded</p>
+            <p className="text-[10px] text-muted-foreground">Tap to replace</p>
           </div>
         ) : (
           <div className="text-center">
