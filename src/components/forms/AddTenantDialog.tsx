@@ -5,8 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Copy, Check, KeyRound } from 'lucide-react';
+import { Plus, Copy, Check, KeyRound, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import KycSubmitForm from '@/components/kyc/KycSubmitForm';
 
 interface AddTenantDialogProps {
   onSuccess: () => void;
@@ -21,7 +22,9 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
   const [email, setEmail] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
 
-  // Generated credentials state
+  // Flow step: 'form' -> 'kyc' -> 'credentials'
+  const [step, setStep] = useState<'form' | 'kyc' | 'credentials'>('form');
+  const [createdUserId, setCreatedUserId] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -32,12 +35,12 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
     setEmergencyContact('');
     setCredentials(null);
     setCopied(false);
+    setStep('form');
+    setCreatedUserId(null);
   };
 
   const handleClose = (isOpen: boolean) => {
-    if (!isOpen) {
-      resetForm();
-    }
+    if (!isOpen) resetForm();
     setOpen(isOpen);
   };
 
@@ -85,12 +88,15 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      setCreatedUserId(data.user_id);
       setCredentials({
         email: data.email,
         password: data.temporary_password,
       });
 
-      toast.success('Tenant account created successfully!');
+      // Go to KYC step
+      setStep('kyc');
+      toast.success('Tenant account created! Now add KYC documents.');
       onSuccess();
     } catch (error: any) {
       toast.error(error.message || 'Failed to create tenant');
@@ -107,14 +113,14 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
           <span className="hidden sm:inline">Add Tenant</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading">
-            {credentials ? 'Tenant Created!' : 'Add New Tenant'}
+            {step === 'form' ? 'Add New Tenant' : step === 'kyc' ? 'KYC Verification' : 'Tenant Created!'}
           </DialogTitle>
         </DialogHeader>
 
-        {credentials ? (
+        {step === 'credentials' && credentials ? (
           <div className="space-y-4 mt-2">
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
               <div className="flex items-center gap-2 text-primary">
@@ -146,6 +152,20 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
               </Button>
             </div>
           </div>
+        ) : step === 'kyc' && createdUserId ? (
+          <div className="space-y-4 mt-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              <p className="text-xs text-muted-foreground">
+                Upload the tenant's ID documents for identity verification.
+              </p>
+            </div>
+            <KycSubmitForm
+              userId={createdUserId}
+              onSuccess={() => setStep('credentials')}
+              onCancel={() => setStep('credentials')}
+            />
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div className="space-y-2">
@@ -165,7 +185,7 @@ export default function AddTenantDialog({ onSuccess }: AddTenantDialogProps) {
               <Input id="tenant-emergency" placeholder="+256 700 000 000" value={emergencyContact} onChange={e => setEmergencyContact(e.target.value)} />
             </div>
             <p className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2.5">
-              A login account will be created automatically with a temporary password. The tenant must change it on first login.
+              A login account will be created automatically. You'll then be asked to submit KYC documents.
             </p>
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? 'Creating account…' : 'Create Tenant Account'}

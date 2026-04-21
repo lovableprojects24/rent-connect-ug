@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { UserPlus, CheckCircle, XCircle, Clock, Building2, Users, Mail, Phone } from 'lucide-react';
+import { UserPlus, CheckCircle, XCircle, Clock, Building2, Users, Mail, Phone, ShieldCheck } from 'lucide-react';
+import KycReviewPanel from '@/components/kyc/KycReviewPanel';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -15,10 +17,13 @@ const statusConfig: Record<RequestStatus, { label: string; color: string; icon: 
 };
 
 export default function OnboardingRequestsPage() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState<OnboardingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<RequestStatus | 'all'>('all');
   const [processing, setProcessing] = useState<string | null>(null);
+  const [kycReviewId, setKycReviewId] = useState<string | null>(null);
+  const [kycReviewUserId, setKycReviewUserId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -205,6 +210,22 @@ export default function OnboardingRequestsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Button
                               size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                const { data: uid } = await supabase.rpc('find_user_by_email', { _email: req.email });
+                                if (uid) {
+                                  setKycReviewId(req.id);
+                                  setKycReviewUserId(uid);
+                                } else {
+                                  toast.error('User account not found for KYC review');
+                                }
+                              }}
+                              className="h-8 text-xs gap-1"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" /> KYC
+                            </Button>
+                            <Button
+                              size="sm"
                               onClick={() => handleAction(req.id, 'approved')}
                               disabled={processing === req.id}
                               className="bg-[#2d8f4e] hover:bg-[#24733f] text-white h-8 text-xs"
@@ -232,6 +253,23 @@ export default function OnboardingRequestsPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* KYC Review Dialog */}
+      {kycReviewUserId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setKycReviewId(null); setKycReviewUserId(null); }}>
+          <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading font-semibold text-lg">KYC Review</h2>
+              <Button variant="ghost" size="sm" onClick={() => { setKycReviewId(null); setKycReviewUserId(null); }}>✕</Button>
+            </div>
+            <KycReviewPanel
+              userId={kycReviewUserId}
+              reviewerId={user?.id || ''}
+              onUpdate={() => { setKycReviewId(null); setKycReviewUserId(null); }}
+            />
           </div>
         </div>
       )}
