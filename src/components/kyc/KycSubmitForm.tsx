@@ -14,10 +14,19 @@ interface KycSubmitFormProps {
   onCancel?: () => void;
 }
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 1000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out — please check your connection and try again`)), ms)
+    ),
+  ]);
+}
+
+async function withRetry<T>(fn: () => Promise<T>, label: string, retries = 2, delayMs = 1000, timeoutMs = 30000): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      return await fn();
+      return await withTimeout(fn(), timeoutMs, label);
     } catch (err) {
       if (attempt === retries) throw err;
       await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
